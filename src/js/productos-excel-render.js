@@ -5,6 +5,7 @@
 
 
 import { getProductos  } from './productos-excel-data.js';
+console.log(getProductos());
 
 const IMPOR_SAN_PRODUCTOS_TBODY_ID = 'impor-san-productos-excel-tbody';
 

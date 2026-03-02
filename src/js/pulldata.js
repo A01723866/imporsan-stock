@@ -1,12 +1,12 @@
 import supabase from './db.js'
+
 async function getProducts() {
     console.log('getProducts')
-    const { data, error } = await supabase.from('productos').select('nombre, sku')
-    console.log(data)
+    const { data, error } = await supabase.from('productos').select('nombre, sku, modelo')
     if (error) {
         console.error(error)
     }
-    console.log(data)
+    return data
 }
 export default getProducts
 
