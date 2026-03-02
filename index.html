@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ImporSan - Carga de CSV y Excel</title>
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <nav class="impor-san-nav" aria-label="Navegación principal">
+    <a href="index.html" class="impor-san-nav-link impor-san-nav-link-current">Carga de archivos</a>
+    <a href="productos-excel.html" class="impor-san-nav-link">Productos</a>
+  </nav>
+  <main class="impor-san-page">
+    <h1 class="impor-san-title">Carga de archivos CSV o Excel</h1>
+    <p class="impor-san-subtitle">Arrastra o suelta tu archivo CSV o XLSX en la sección correspondiente</p>
+
+    <section class="impor-san-drop-zones">
+      <section class="impor-san-drop-zone impor-san-drop-zone-mercadolibre" data-source="mercadolibre">
+        <input type="file" class="impor-san-drop-zone-input" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" id="mercadolibre-drop-zone-input" aria-label="Seleccionar CSV o Excel Mercado Libre">
+        <div class="impor-san-drop-zone-inner">
+          <span class="impor-san-drop-zone-icon" aria-hidden="true">📦</span>
+          <h2 class="impor-san-drop-zone-title">Mercado Libre</h2>
+          <p class="impor-san-drop-zone-hint">Suelta aquí tu CSV o Excel de Mercado Libre</p>
+          <p class="impor-san-drop-zone-file-name" data-file-display></p>
+        </div>
+      </section>
+
+      <section class="impor-san-drop-zone impor-san-drop-zone-amazon" data-source="amazon">
+        <input type="file" class="impor-san-drop-zone-input" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" id="amazon-drop-zone-input" aria-label="Seleccionar CSV o Excel Amazon">
+        <div class="impor-san-drop-zone-inner">
+          <span class="impor-san-drop-zone-icon" aria-hidden="true">📦</span>
+          <h2 class="impor-san-drop-zone-title">Amazon</h2>
+          <p class="impor-san-drop-zone-hint">Suelta aquí tu CSV o Excel de Amazon</p>
+          <p class="impor-san-drop-zone-file-name" data-file-display></p>
+        </div>
+      </section>
+
+      <section class="impor-san-drop-zone impor-san-drop-zone-spakio" data-source="spakio">
+        <input type="file" class="impor-san-drop-zone-input" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" aria-label="Seleccionar CSV o Excel Spakio">
+        <div class="impor-san-drop-zone-inner">
+          <span class="impor-san-drop-zone-icon" aria-hidden="true">📦</span>
+          <h2 class="impor-san-drop-zone-title">Spakio</h2>
+          <p class="impor-san-drop-zone-hint">Suelta aquí tu CSV o Excel de Spakio</p>
+          <p class="impor-san-drop-zone-file-name" data-file-display></p>
+        </div>
+      </section>
+    </section>
+
+    <div class="impor-san-run-wrap">
+      <button class="impor-san-run-button" id="impor-san-run-button">Run</button>
+    </div>
+  </main>
+
+  <script type="module" src="src/js/csv-drop-handler.js" defer></script>
+  <script type="module" src="src/main.js"></script>
+  <script type="module" src="src/js/meli-csv-handler.js"></script>
+  <script type="module" src="src/js/amz-csv-handler.js"></script>
+</body>
+</html>

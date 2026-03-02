@@ -1,0 +1,341 @@
+/* ===== ImporSan - Estilos globales ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ----- Navegación entre páginas ----- */
+.impor-san-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.impor-san-nav-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #0066cc;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.impor-san-nav-link:hover {
+  background: #e8f2ff;
+  color: #004d99;
+}
+
+.impor-san-nav-link-current {
+  background: #0066cc;
+  color: #fff;
+}
+
+.impor-san-nav-link-current:hover {
+  background: #0052a3;
+  color: #fff;
+}
+
+.impor-san-nav-link:focus-visible {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .impor-san-nav {
+    padding: 0.5rem;
+  }
+
+  .impor-san-nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* ----- Página principal ----- */
+.impor-san-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  min-height: 100vh;
+}
+
+.impor-san-title {
+  margin: 0 0 0.25rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  text-align: center;
+}
+
+.impor-san-subtitle {
+  margin: 0 0 2rem;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  color: #555;
+  text-align: center;
+}
+
+/* ----- Contenedor de zonas ----- */
+.impor-san-drop-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ----- Zona de drop genérica ----- */
+.impor-san-drop-zone {
+  background: #fff;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: border-color 0.2s, background-color 0.2s;
+  cursor: pointer;
+}
+
+.impor-san-drop-zone:hover {
+  border-color: #888;
+  background: #fafafa;
+}
+
+.impor-san-drop-zone.impor-san-drop-zone-dragover {
+  border-color: #0066cc;
+  background: #e8f2ff;
+}
+
+.impor-san-drop-zone.impor-san-drop-zone-has-file {
+  border-style: solid;
+  border-color: #0a0;
+  background: #f0fff0;
+}
+
+.impor-san-drop-zone-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.impor-san-drop-zone-input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+}
+
+.impor-san-drop-zone {
+  position: relative;
+}
+
+.impor-san-drop-zone-icon {
+  font-size: 2rem;
+}
+
+.impor-san-drop-zone-title {
+  margin: 0;
+  font-size: clamp(1.1rem, 3vw, 1.25rem);
+  font-weight: 600;
+}
+
+.impor-san-drop-zone-hint {
+  margin: 0;
+  font-size: clamp(0.85rem, 2vw, 0.9rem);
+  color: #666;
+}
+
+.impor-san-drop-zone-file-name {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #0066cc;
+  font-weight: 500;
+  min-height: 1.2em;
+}
+
+.impor-san-drop-zone-file-name:empty {
+  display: none;
+}
+
+/* ----- Colores por fuente (opcional) ----- */
+.impor-san-drop-zone-mercadolibre.impor-san-drop-zone-dragover { border-color: #ffe600; background: #fffde8; }
+.impor-san-drop-zone-amazon.impor-san-drop-zone-dragover { border-color: #ff9900; background: #fff5e8; }
+.impor-san-drop-zone-spakio.impor-san-drop-zone-dragover { border-color: #0066cc; background: #e8f2ff; }
+
+/* ----- Botón Run ----- */
+.impor-san-run-wrap {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.impor-san-run-button {
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  min-height: 44px;
+  min-width: 120px;
+  color: #fff;
+  background: #0066cc;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.impor-san-run-button:hover {
+  background: #0052a3;
+}
+
+.impor-san-run-button:active {
+  background: #004080;
+}
+
+.impor-san-run-button:focus-visible {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .impor-san-run-wrap {
+    margin-top: 1.5rem;
+  }
+
+  .impor-san-run-button {
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
+/* ----- Responsive: botones y touch ----- */
+@media (max-width: 480px) {
+  .impor-san-page {
+    padding: 1rem;
+  }
+
+  .impor-san-drop-zone {
+    padding: 1.25rem;
+    min-height: 120px;
+  }
+
+  .impor-san-drop-zone-title {
+    font-size: 1.1rem;
+  }
+}
+
+/* ===== Página tipo Excel (productos) ===== */
+.impor-san-excel-page {
+  max-width: none;
+  padding: 1rem;
+}
+
+.impor-san-excel-wrap {
+  background: #fff;
+  border: 1px solid #d4d4d4;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.impor-san-excel-scroll {
+  overflow: auto;
+  max-height: min(80vh, 600px);
+  -webkit-overflow-scrolling: touch;
+}
+
+.impor-san-excel-grid {
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+.impor-san-excel-grid th,
+.impor-san-excel-grid td {
+  border: 1px solid #d4d4d4;
+  padding: 4px 8px;
+  min-width: 72px;
+  max-width: 72px;
+  width: 72px;
+  height: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.impor-san-excel-corner {
+  background: #f0f0f0;
+  min-width: 10px;
+  max-width: 10px;
+  width: 10px;
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+.impor-san-excel-col-header {
+  background: #f0f0f0;
+  font-weight: 600;
+  color: #333;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.impor-san-excel-row-header {
+  background: #f0f0f0;
+  font-weight: 600;
+  color: #333;
+  min-width: 36px;
+  max-width: 36px;
+  width: 36px;
+  text-align: center;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.impor-san-excel-cell {
+  background: #fff;
+}
+
+.impor-san-excel-grid tbody tr:nth-child(even) .impor-san-excel-cell {
+  background: #fafafa;
+}
+
+@media (max-width: 640px) {
+  .impor-san-excel-grid th,
+  .impor-san-excel-grid td {
+    min-width: 56px;
+    max-width: 56px;
+    width: 56px;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+  }
+
+  .impor-san-excel-corner,
+  .impor-san-excel-row-header {
+    min-width: 28px;
+    max-width: 28px;
+    width: 28px;
+  }
+}
