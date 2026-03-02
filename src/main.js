@@ -4,7 +4,7 @@ import handleMeli from './js/meli-csv-handler.js'
 import handleAmz from './js/amz-csv-handler.js'
 import handleSpakio from './js/spakio-csv-handler.js'
 
-document.getElementById('impor-san-productos-excel-download-button').addEventListener('click', updateTotal);
+document.getElementById('update-total-button').addEventListener('click', updateTotal);
 
 document.addEventListener('imporSanCsvDropped', function (e) {
   if (e.detail.source === 'mercadolibre') {
