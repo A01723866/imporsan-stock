@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { mergeMeliDataPorSku } from './productos-excel-data.js';
+import { mergeMeliDataPorSku, resetMeliInventario } from './productos-excel-data.js';
 
 /**
  * Atributos de cada fila del XLSX de MeLi, en el mismo orden que las columnas.
@@ -54,6 +54,7 @@ function llenarObjetoMeliFila(rows) {
 }
 
 async function handleMeli(file) {
+    resetMeliInventario();
     const arrayBuffer = await file.arrayBuffer();
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
     const firstSheetName = workbook.SheetNames[0];

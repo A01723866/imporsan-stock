@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import {mergeSpakioDataPorSku} from './productos-excel-data.js';
+import { mergeSpakioDataPorSku, resetSpakioInventario } from './productos-excel-data.js';
 
 const config = {
     delimiter: "",	// auto-detect
@@ -61,6 +61,7 @@ function llenarObjetoSpakioFila(rows) {
 }
 
 async function handleSpakio(file) {
+    resetSpakioInventario();
     const arrayBuffer = await file.arrayBuffer();
     const result = await new Promise((resolve, reject) => {
         Papa.parse(file, {

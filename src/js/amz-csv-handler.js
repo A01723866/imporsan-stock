@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import { mergeAmzDataPorSku } from './productos-excel-data.js';
+import { mergeAmzDataPorSku, resetAmazonInventario } from './productos-excel-data.js';
 
 /**
  * Atributos de cada fila del XLSX de amz, en el mismo orden que las columnas.
@@ -116,6 +116,7 @@ function llenarObjetoamzFila(rows) {
 }
 
 async function handleamz(file) {
+    resetAmazonInventario();
     const result = await new Promise((resolve, reject) => {
         Papa.parse(file, {
             ...config,
