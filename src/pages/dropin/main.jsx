@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './style.css';
-import UploadCsvAndExcelPage from './pages/upload-csv-and-excel-page.jsx';
+import '../../style.css';
+import DropInPage from './page.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <UploadCsvAndExcelPage />
+    <DropInPage />
   </React.StrictMode>,
 );

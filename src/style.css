@@ -14,64 +14,131 @@ body {
   line-height: 1.5;
 }
 
-/* ----- Navegación entre páginas ----- */
-.impor-san-nav {
+/* ===== Layout con sidebar ===== */
+.impor-san-layout {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: #fff;
-  border-bottom: 1px solid #e0e0e0;
+  min-height: 100vh;
 }
 
-.impor-san-nav-link {
-  display: inline-block;
-  padding: 0.5rem 1rem;
+/* ----- Sidebar ----- */
+.impor-san-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  width: 220px;
+  height: 100vh;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 1.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+.impor-san-sidebar-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0 0.75rem;
+  color: #fff;
+}
+
+.impor-san-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.impor-san-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: #0066cc;
+  color: #ccc;
   text-decoration: none;
   border-radius: 6px;
   transition: background-color 0.2s, color 0.2s;
 }
 
-.impor-san-nav-link:hover {
-  background: #e8f2ff;
-  color: #004d99;
+.impor-san-sidebar-link:hover {
+  background: #2a2a2a;
+  color: #fff;
 }
 
-.impor-san-nav-link-current {
+.impor-san-sidebar-link-active {
   background: #0066cc;
   color: #fff;
 }
 
-.impor-san-nav-link-current:hover {
+.impor-san-sidebar-link-active:hover {
   background: #0052a3;
   color: #fff;
 }
 
-.impor-san-nav-link:focus-visible {
+.impor-san-sidebar-link:focus-visible {
   outline: 2px solid #0066cc;
   outline-offset: 2px;
 }
 
-@media (max-width: 480px) {
-  .impor-san-nav {
-    padding: 0.5rem;
+.impor-san-sidebar-icon {
+  font-size: 1.125rem;
+  width: 1.5rem;
+  text-align: center;
+}
+
+/* En móvil el sidebar pasa arriba como barra horizontal */
+@media (max-width: 640px) {
+  .impor-san-layout {
+    flex-direction: column;
   }
 
-  .impor-san-nav-link {
+  .impor-san-sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 0.5rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .impor-san-sidebar-brand {
+    font-size: 1rem;
+    padding: 0 0.5rem;
+  }
+
+  .impor-san-sidebar-nav {
+    flex-direction: row;
+    flex: 1;
+    justify-content: flex-end;
+    gap: 0.25rem;
+  }
+
+  .impor-san-sidebar-link {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
+  }
+
+  .impor-san-sidebar-label {
+    display: none;
+  }
+
+  .impor-san-sidebar-icon {
+    font-size: 1.25rem;
   }
 }
 
 /* ----- Página principal ----- */
 .impor-san-page {
+  flex: 1;
   max-width: 900px;
   margin: 0 auto;
   padding: 1.5rem;
   min-height: 100vh;
+  width: 100%;
 }
 
 .impor-san-title {

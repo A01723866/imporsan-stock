@@ -10,8 +10,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
-        productos: resolve(__dirname, 'src/productos-excel.html'),
+        main:   resolve(__dirname, 'index.html'),
+        dropin: resolve(__dirname, 'src/pages/dropin/index.html'),
+        stock:  resolve(__dirname, 'src/pages/stock/index.html'),
+        ventas: resolve(__dirname, 'src/pages/ventas/index.html'),
       },
     },
   },
