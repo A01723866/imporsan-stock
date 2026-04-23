@@ -21,7 +21,7 @@ Esto permite que el `processor` trate a todas las plataformas por igual.
 import re
 from typing import Optional
 
-from mappings import (
+from .mappings import (
     KITS_A_BASE,
     MULTIPLICADORES_SKU,
     NOMBRE_SPAKIO_A_SKU,

@@ -24,7 +24,7 @@ Eso es todo. No hay handlers, parsers o registros adicionales que tocar.
 from dataclasses import dataclass
 from typing import Callable, Literal
 
-from sku_resolver import (
+from .sku_resolver import (
     Resultado,
     resolver_por_sku_directo,
     resolver_spakio,

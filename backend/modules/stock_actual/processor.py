@@ -26,7 +26,7 @@ from io import BytesIO
 
 import pandas as pd
 
-from platforms import ConfiguracionPlataforma
+from .platforms import ConfiguracionPlataforma
 
 
 def procesar_archivo(
