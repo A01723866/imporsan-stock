@@ -13,13 +13,14 @@
  */
 
 const MENU_ITEMS = [
-  { id: 'dropin', label: 'DropIn', icono: '📥', href: '/src/pages/dropin/' },
-  { id: 'stock',  label: 'Stock',  icono: '📦', href: '/src/pages/stock/' },
-  { id: 'ventas', label: 'Ventas', icono: '💰', href: '/src/pages/ventas/' },
+  { id: 'dropin',      label: 'DropIn',      icono: '📥', href: '/src/pages/dropin/' },
+  { id: 'stock',       label: 'Stock',       icono: '📦', href: '/src/pages/stock/' },
+  { id: 'movimientos', label: 'Movimientos', icono: '🔄', href: '/src/pages/movimientos/' },
+  { id: 'ventas',      label: 'Ventas',      icono: '💰', href: '/src/pages/ventas/' },
 ];
 
 /**
- * @param {{ activo: 'dropin' | 'stock' | 'ventas' }} props
+ * @param {{ activo: 'dropin' | 'stock' | 'movimientos' | 'ventas' }} props
  */
 export default function Sidebar({ activo }) {
   return (
