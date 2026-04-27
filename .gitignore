@@ -24,3 +24,11 @@ dist-ssr
 *.sw?
 .vercel
 .env*.local
+
+# Backend secrets (contiene service_role key de Supabase — nunca commitear)
+backend/.env
+
+# Python
+backend/__pycache__/
+backend/**/__pycache__/
+*.pyc
