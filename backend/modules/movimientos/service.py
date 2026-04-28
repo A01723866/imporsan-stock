@@ -8,6 +8,9 @@ from core.supabase import get_supabase
 
 from .schemas import MovimientoActualizar, MovimientoCrear, MovimientoRespuesta
 
+_TABLA_MOV_PROD = "mov_prod"
+_TABLA_MOV_COSTO = "mov_costo"
+
 
 TABLA = "movimientos"
 COLUMNAS = (
@@ -67,12 +70,8 @@ def actualizar(movimiento_id: str, datos: MovimientoActualizar) -> MovimientoRes
 
 
 def eliminar(movimiento_id: str) -> None:
-    respuesta = (
-        get_supabase()
-        .table(TABLA)
-        .delete()
-        .eq("id", movimiento_id)
-        .execute()
-    )
-    if not respuesta.data:
-        raise MovimientoNoEncontrado(f"No existe un movimiento con id '{movimiento_id}'.")
+    obtener(movimiento_id)  # lanza MovimientoNoEncontrado si no existe
+    sb = get_supabase()
+    sb.table(_TABLA_MOV_PROD).delete().eq("id_movimiento", movimiento_id).execute()
+    sb.table(_TABLA_MOV_COSTO).delete().eq("id_movimiento", movimiento_id).execute()
+    sb.table(TABLA).delete().eq("id", movimiento_id).execute()

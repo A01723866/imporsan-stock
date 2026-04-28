@@ -74,7 +74,7 @@ PLATAFORMAS: dict[str, ConfiguracionPlataforma] = {
         formato="xlsx",
         columnas={
             3:  "sku",    # columna "SKU"
-            16: "stock",  # columna "Unidades en Full - Aptas para vender"
+            21: "stock",  # columna "Unidades que ocupan espacio en Full"
         },
         resolver=resolver_por_sku_directo,
     ),

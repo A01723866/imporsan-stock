@@ -25,8 +25,9 @@ Ejecución local
 Documentación interactiva en http://localhost:8000/docs
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from modules.health.router import router as health_router
 from modules.movimientos.costo_tipo.router import router as costo_tipo_router
@@ -56,6 +57,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# FastAPI's CORSMiddleware no agrega headers en excepciones no manejadas (500).
+# Este handler garantiza que los headers CORS estén presentes siempre.
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Error interno del servidor."},
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
 
 # Montaje de routers. Cada módulo trae su propio APIRouter; aquí se les
 # asigna el prefijo de URL.
