@@ -84,8 +84,8 @@ PLATAFORMAS: dict[str, ConfiguracionPlataforma] = {
     "amazon": ConfiguracionPlataforma(
         formato="csv",
         columnas={
-            1:  "sku",    # columna "sku"
-            56: "stock",  # columna "Inventory Supply at FBA"
+            0:  "sku",    # columna "sku"
+            13: "stock",  # columna "afn-total-quantity"
         },
         resolver=resolver_por_sku_directo,
     ),

@@ -45,15 +45,18 @@ def resolver_por_sku_directo(fila: dict) -> Resultado:
     Resolver para MercadoLibre y Amazon.
 
     La plataforma reporta el SKU directamente en una columna. Si el SKU
-    corresponde a un KIT conocido, se convierte al SKU del producto base.
-    No aplica multiplicador (siempre 1).
+    corresponde a un KIT conocido, se convierte al SKU del producto base
+    con el multiplicador definido en KITS_A_BASE.
     """
     sku_crudo = _texto_limpio(fila.get("sku"))
     if not sku_crudo:
         return None
 
-    sku_canonico = KITS_A_BASE.get(sku_crudo, sku_crudo)
-    return (sku_canonico, 1)
+    kit = KITS_A_BASE.get(sku_crudo)
+    if kit:
+        sku_base, multiplicador = kit
+        return (sku_base, multiplicador)
+    return (sku_crudo, 1)
 
 
 def resolver_spakio(fila: dict) -> Resultado:

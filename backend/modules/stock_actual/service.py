@@ -60,11 +60,7 @@ def procesar_inventario(
     if plataforma != "spakio":
         return inventario, []
 
-    # Sumar comprometido de B2C + Mercado Libre
-    comprometido: dict[str, int] = {}
-    for area in ("B2C", "Mercado Libre"):
-        for sku, cant in stock_comprometido(area).items():
-            comprometido[sku] = comprometido.get(sku, 0) + cant
+    comprometido = stock_comprometido()
 
     # Descontar del inventario y detectar ausentes
     warnings: list[str] = []

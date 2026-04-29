@@ -87,15 +87,19 @@ def _leer_archivo(
             dtype=str,
         )
 
-    # csv
-    return pd.read_csv(
-        buffer,
+    # csv — Amazon y otros pueden exportar en latin-1 en vez de UTF-8
+    csv_kwargs = dict(
         header=None,
         skiprows=configuracion.saltar_filas,
         dtype=str,
         keep_default_na=False,
         on_bad_lines="skip",
     )
+    try:
+        return pd.read_csv(buffer, encoding="utf-8", **csv_kwargs)
+    except (UnicodeDecodeError, Exception):
+        buffer.seek(0)
+        return pd.read_csv(buffer, encoding="latin-1", **csv_kwargs)
 
 
 def _extraer_columnas(fila_bruta, columnas: dict[int, str]) -> dict:

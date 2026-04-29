@@ -86,11 +86,12 @@ MULTIPLICADORES_SKU: dict[str, int] = {
 
 
 # ---------------------------------------------------------------------------
-# 4. SKU de KIT → SKU del producto base (para MeLi y Amazon)
+# 4. SKU de KIT → (SKU del producto base, multiplicador)
 # ---------------------------------------------------------------------------
 # Cuando MercadoLibre o Amazon reportan un KIT, el stock se acumula en el
-# producto base correspondiente, no en el KIT.
-KITS_A_BASE: dict[str, str] = {
-    "C-DI-KIT-0025": "C-DI-KGS-0025",
-    "C-DI-KIT-0050": "C-DI-KGS-0050",
+# producto base con el multiplicador correspondiente.
+# Formato: "SKU_KIT": ("SKU_BASE", multiplicador)
+KITS_A_BASE: dict[str, tuple[str, int]] = {
+    "C-DI-KIT-0025": ("C-DI-KGS-0025", 2),
+    "C-DI-KIT-0050": ("C-DI-KGS-0050", 2),
 }
