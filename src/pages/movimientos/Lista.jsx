@@ -20,6 +20,14 @@ import {
 
 const CANALES = ['B2C', 'B2B'];
 
+const COLORES_ESTADO = {
+  'f21aa5a4-33d0-419e-aa2a-e10a6369351a': { background: '#fde68a', color: '#92400e' }, // comprometido
+  '81422795-bce8-4a48-bc3c-41d71ba1c802': { background: '#bbf7d0', color: '#14532d' }, // envío completo
+  '89af0089-6d3b-4a5b-aeb4-39edcdef4b3e': { background: '#fef08a', color: '#713f12' }, // en proceso
+  'b23ee1d2-ca56-4533-af1f-eafd54abdc95': { background: '#bfdbfe', color: '#1e3a5f' }, // azul
+  'd2173d71-9311-40c4-9d8c-36a97233c594': { background: '#fed7aa', color: '#7c2d12' }, // reclamo
+};
+
 export default function Lista({ onAbrirDetalle }) {
   const [movimientos, setMovimientos] = useState([]);
   const [estados, setEstados] = useState([]);
@@ -166,7 +174,7 @@ export default function Lista({ onAbrirDetalle }) {
               <th>ID interno</th>
               <th>Nombre</th>
               <th>Estado</th>
-              <th>Canal</th>
+              <th style={{ minWidth: '220px' }}>Notas</th>
               <th>Creado</th>
               <th>Modificado</th>
               <th></th>
@@ -190,8 +198,15 @@ export default function Lista({ onAbrirDetalle }) {
                     </a>
                   </td>
                   <td>{m.nombre}</td>
-                  <td>{estadoPorId[m.estado] ?? '—'}</td>
-                  <td><span className="impor-san-pill">{m.canal}</span></td>
+                  <td>
+                    <span
+                      className="impor-san-pill"
+                      style={COLORES_ESTADO[m.estado] ?? {}}
+                    >
+                      {estadoPorId[m.estado] ?? '—'}
+                    </span>
+                  </td>
+                  <td className="impor-san-table-muted" style={{ minWidth: '220px' }}>{m.notas ?? '—'}</td>
                   <td className="impor-san-table-muted">{formatearFecha(m.fecha_creacion)}</td>
                   <td className="impor-san-table-muted">{formatearFecha(m.fecha_modificacion)}</td>
                   <td>

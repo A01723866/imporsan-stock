@@ -23,7 +23,7 @@ export default function MovimientosPage() {
     <div className="impor-san-layout">
       <Sidebar activo="movimientos" />
 
-      <main className="impor-san-page">
+      <main className="impor-san-page impor-san-page-wide">
         {vista.tipo === 'lista' && (
           <Lista onAbrirDetalle={(id) => setVista({ tipo: 'detalle', id })} />
         )}

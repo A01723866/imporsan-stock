@@ -306,6 +306,11 @@ body {
   }
 }
 
+/* ===== Página ancha (movimientos) ===== */
+.impor-san-page-wide {
+  max-width: 1400px;
+}
+
 /* ===== Página tipo Excel (productos) ===== */
 .impor-san-excel-page {
   max-width: none;
