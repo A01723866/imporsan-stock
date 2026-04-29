@@ -24,13 +24,21 @@ class InventarioRespuesta(BaseModel):
     El campo `inventario` es un diccionario `{sku: stock}` que solo incluye
     los SKUs encontrados en el archivo. Los SKUs que no aparecen se asumen
     con stock 0 en esa plataforma.
+
+    Para Spakio, el stock ya tiene descontado el stock comprometido (B2C +
+    Mercado Libre). Los SKUs comprometidos que no estaban en el archivo
+    aparecen en `warnings`.
     """
     plataforma: str = Field(..., description="Plataforma procesada (ej. 'mercadolibre')")
     inventario: dict[str, int] = Field(
         ...,
-        description="Diccionario SKU → stock extraído del archivo",
+        description="Diccionario SKU → stock neto (comprometido ya descontado en Spakio)",
     )
     productos_encontrados: int = Field(
         ...,
         description="Cuántos SKUs distintos se resolvieron exitosamente",
+    )
+    warnings: list[str] = Field(
+        default_factory=list,
+        description="SKUs comprometidos que no aparecieron en el archivo de Spakio",
     )

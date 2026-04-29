@@ -37,17 +37,46 @@ def obtener_configuracion(plataforma: str) -> ConfiguracionPlataforma:
     return configuracion
 
 
-def procesar_inventario(plataforma: str, contenido: bytes) -> dict[str, int]:
-    """Procesa un archivo y retorna el inventario {sku: stock}."""
+def procesar_inventario(
+    plataforma: str, contenido: bytes
+) -> tuple[dict[str, int], list[str]]:
+    """
+    Procesa un archivo y retorna (inventario, warnings).
+
+    Para Spakio: descuenta el stock comprometido de B2C y Mercado Libre.
+    Los SKUs comprometidos ausentes en el archivo van en warnings.
+    Para otras plataformas: warnings siempre vacío.
+    """
     configuracion = obtener_configuracion(plataforma)
 
     if not contenido:
         raise ArchivoInvalidoError("El archivo está vacío.")
 
     try:
-        return procesar_archivo(configuracion, contenido)
+        inventario = procesar_archivo(configuracion, contenido)
     except Exception as error:
         raise ArchivoInvalidoError(f"No se pudo procesar el archivo: {error}") from error
+
+    if plataforma != "spakio":
+        return inventario, []
+
+    # Sumar comprometido de B2C + Mercado Libre
+    comprometido: dict[str, int] = {}
+    for area in ("B2C", "Mercado Libre"):
+        for sku, cant in stock_comprometido(area).items():
+            comprometido[sku] = comprometido.get(sku, 0) + cant
+
+    # Descontar del inventario y detectar ausentes
+    warnings: list[str] = []
+    for sku, cant in comprometido.items():
+        if sku not in inventario:
+            warnings.append(
+                f"SKU '{sku}' tiene {cant} unidad(es) comprometida(s) pero no aparece en Spakio."
+            )
+        else:
+            inventario[sku] = max(0, inventario[sku] - cant)
+
+    return inventario, warnings
 
 
 AreaVenta = str  # "Mercado Libre" | "Amazon" | "B2C"

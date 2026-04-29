@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 
 CanalEnvio = Literal["B2C", "B2B"]
-PlataformaVenta = Literal["Mercado Libre", "Amazon"]
+PlataformaVenta = Literal["Mercado Libre", "Amazon", "Shopify", "TikTok"]
 
 
 class MovimientoRespuesta(BaseModel):

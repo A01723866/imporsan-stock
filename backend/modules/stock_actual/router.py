@@ -59,7 +59,7 @@ async def subir_archivo(
     contenido = await archivo.read()
 
     try:
-        inventario = service.procesar_inventario(plataforma, contenido)
+        inventario, warnings = service.procesar_inventario(plataforma, contenido)
     except service.PlataformaDesconocidaError as error:
         raise HTTPException(status_code=400, detail=str(error))
     except service.ArchivoInvalidoError as error:
@@ -69,6 +69,7 @@ async def subir_archivo(
         plataforma=plataforma,
         inventario=inventario,
         productos_encontrados=len(inventario),
+        warnings=warnings,
     )
 
 

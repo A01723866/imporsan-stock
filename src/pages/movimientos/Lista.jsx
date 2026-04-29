@@ -213,13 +213,22 @@ export default function Lista({ onAbrirDetalle }) {
   );
 }
 
+const PLATAFORMAS_B2B = ['Mercado Libre', 'Amazon'];
+const PLATAFORMAS_B2C = ['Shopify', 'TikTok', 'Mercado Libre'];
+
 function FormCrear({ estados, onCrear, onCancelar }) {
   const [nombre, setNombre] = useState('');
   const [idInterno, setIdInterno] = useState('');
   const [estado, setEstado] = useState('');
   const [canal, setCanal] = useState('B2C');
+  const [plataforma, setPlataforma] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [notas, setNotas] = useState('');
+
+  const handleCanalChange = (e) => {
+    setCanal(e.target.value);
+    setPlataforma('');
+  };
 
   const submit = (e) => {
     e.preventDefault();
@@ -232,6 +241,7 @@ function FormCrear({ estados, onCrear, onCancelar }) {
       id_interno: idInterno,
       estado,
       canal,
+      plataforma: plataforma || null,
       descripcion: descripcion || null,
       notas: notas || null,
     });
@@ -252,11 +262,21 @@ function FormCrear({ estados, onCrear, onCancelar }) {
               {estados.map((es) => <option key={es.id} value={es.id}>{es.texto}</option>)}
             </select>
           </label>
-          <label>Canal
-            <select className="impor-san-input" value={canal} onChange={(e) => setCanal(e.target.value)}>
-              {CANALES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </label>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end' }}>
+            <label style={{ flex: 1 }}>Canal
+              <select className="impor-san-input" value={canal} onChange={handleCanalChange}>
+                {CANALES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+            <label style={{ flex: 1 }}>Plataforma
+              <select className="impor-san-input" value={plataforma} onChange={(e) => setPlataforma(e.target.value)}>
+                <option value="">— opcional —</option>
+                {(canal === 'B2B' ? PLATAFORMAS_B2B : PLATAFORMAS_B2C).map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </label>
+          </div>
           <label className="impor-san-form-full">Descripción
             <textarea className="impor-san-input" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
           </label>
