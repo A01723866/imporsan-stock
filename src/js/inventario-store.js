@@ -20,11 +20,11 @@
 
 const CLAVE_STORAGE = 'imporsan-inventario-v2';
 
-/** @typedef {{ mercadolibre: Record<string,number>, amazon: Record<string,number>, spakio: Record<string,number> }} InventarioCombinado */
+/** @typedef {{ mercadolibre: Record<string,number>, amazon: Record<string,number>, amazon_reserva: Record<string,number>, spakio: Record<string,number> }} InventarioCombinado */
 
 /** Estado vacío por defecto. */
 function estadoVacio() {
-  return { mercadolibre: {}, amazon: {}, spakio: {} };
+  return { mercadolibre: {}, amazon: {}, amazon_reserva: {}, spakio: {} };
 }
 
 /**

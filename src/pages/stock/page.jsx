@@ -9,9 +9,10 @@ import { leerInventario } from '../../js/inventario-store.js';
  */
 function construirFilas(catalogo, inventario) {
   return catalogo.map((producto) => {
-    const meli   = inventario.mercadolibre[producto.sku] ?? 0;
-    const amazon = inventario.amazon[producto.sku]       ?? 0;
-    const spakio = inventario.spakio[producto.sku]       ?? 0;
+    const meli    = inventario.mercadolibre[producto.sku]  ?? 0;
+    const reserva = inventario.amazon_reserva[producto.sku] ?? 0;
+    const amazon  = Math.max(0, (inventario.amazon[producto.sku] ?? 0) - reserva);
+    const spakio  = inventario.spakio[producto.sku]        ?? 0;
     return {
       ...producto,
       mercadolibre: meli,

@@ -90,6 +90,17 @@ PLATAFORMAS: dict[str, ConfiguracionPlataforma] = {
         resolver=resolver_por_sku_directo,
     ),
 
+    # Amazon "inventario en reserva": CSV con SKU y unidades reservadas por
+    # órdenes de clientes. Se resta del stock Amazon en la vista de stock.
+    "amazon_reserva": ConfiguracionPlataforma(
+        formato="csv",
+        columnas={
+            0: "sku",    # columna "sku"
+            5: "stock",  # columna "reserved_customerorders"
+        },
+        resolver=resolver_por_sku_directo,
+    ),
+
     # Spakio exporta un CSV con 11 columnas y un encabezado que saltamos.
     # No hay SKU estandarizado, así que identificamos productos por su nombre.
     "spakio": ConfiguracionPlataforma(

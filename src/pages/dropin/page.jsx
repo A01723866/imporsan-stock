@@ -20,9 +20,10 @@ function esArchivoValido(file) {
 }
 
 const PLATAFORMAS = [
-  { id: 'mercadolibre', label: 'Mercado Libre' },
-  { id: 'amazon',       label: 'Amazon' },
-  { id: 'spakio',       label: 'Spakio' },
+  { id: 'mercadolibre',  label: 'Mercado Libre' },
+  { id: 'amazon',        label: 'Amazon' },
+  { id: 'amazon_reserva', label: 'Amazon – Inventario en Reserva' },
+  { id: 'spakio',        label: 'Spakio' },
 ];
 
 /** @typedef {'idle' | 'cargando' | 'ok' | 'error'} EstadoZona */
