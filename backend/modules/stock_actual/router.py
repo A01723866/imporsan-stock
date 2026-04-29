@@ -16,13 +16,35 @@ POST /debug/{plataforma}
     pandas, para verificar índices de columna.
 """
 
+from typing import Literal
+
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from . import service
-from .schemas import InventarioRespuesta
+from .schemas import InventarioRespuesta, StockComprometidoRespuesta
 
 
 router = APIRouter()
+
+
+@router.get(
+    "/comprometido",
+    response_model=StockComprometidoRespuesta,
+    summary="Stock total en estado comprometido (todas las áreas)",
+)
+def stock_comprometido_total() -> StockComprometidoRespuesta:
+    return StockComprometidoRespuesta(area=None, stock=service.stock_comprometido())
+
+
+@router.get(
+    "/comprometido/{area}",
+    response_model=StockComprometidoRespuesta,
+    summary="Stock comprometido por área: Mercado Libre, Amazon o B2C",
+)
+def stock_comprometido_por_area(
+    area: Literal["Mercado Libre", "Amazon", "B2C"],
+) -> StockComprometidoRespuesta:
+    return StockComprometidoRespuesta(area=area, stock=service.stock_comprometido(area=area))
 
 
 @router.post(

@@ -14,7 +14,7 @@ _TABLA_MOV_COSTO = "mov_costo"
 
 TABLA = "movimientos"
 COLUMNAS = (
-    "id, nombre, id_interno, estado, canal, descripcion, notas, "
+    "id, nombre, id_interno, estado, canal, plataforma, descripcion, notas, "
     "fecha_creacion, fecha_modificacion"
 )
 

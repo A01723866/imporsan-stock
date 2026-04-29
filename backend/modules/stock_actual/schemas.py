@@ -9,6 +9,14 @@ endpoints de este módulo.
 from pydantic import BaseModel, Field
 
 
+class StockComprometidoRespuesta(BaseModel):
+    area: str | None = Field(None, description="Área filtrada: 'Mercado Libre', 'Amazon', 'B2C', o None para todo")
+    stock: dict[str, int] = Field(
+        ...,
+        description="Diccionario SKU → cantidad total comprometida",
+    )
+
+
 class InventarioRespuesta(BaseModel):
     """
     Resultado de procesar un archivo de una plataforma.

@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 
 CanalEnvio = Literal["B2C", "B2B"]
+PlataformaVenta = Literal["Mercado Libre", "Amazon"]
 
 
 class MovimientoRespuesta(BaseModel):
@@ -19,6 +20,7 @@ class MovimientoRespuesta(BaseModel):
     id_interno: str = Field(..., description="Identificador interno legible")
     estado: str = Field(..., description="UUID del estado (FK a estados.id)")
     canal: CanalEnvio = Field(..., description="Canal de envío")
+    plataforma: PlataformaVenta | None = Field(None, description="Plataforma de venta")
     descripcion: str | None = Field(None, description="Descripción libre")
     notas: str | None = Field(None, description="Notas adicionales")
     fecha_creacion: datetime = Field(..., description="Cuándo se creó el movimiento")
@@ -31,6 +33,7 @@ class MovimientoCrear(BaseModel):
     id_interno: str = Field(..., min_length=1)
     estado: str = Field(..., description="UUID de un estado existente")
     canal: CanalEnvio = Field(...)
+    plataforma: PlataformaVenta | None = None
     descripcion: str | None = None
     notas: str | None = None
 
@@ -41,5 +44,6 @@ class MovimientoActualizar(BaseModel):
     id_interno: str | None = Field(None, min_length=1)
     estado: str | None = None
     canal: CanalEnvio | None = None
+    plataforma: PlataformaVenta | None = None
     descripcion: str | None = None
     notas: str | None = None
