@@ -1,0 +1,44 @@
+"""
+Schemas del módulo stock_actual
+===============================
+
+Modelos Pydantic que definen la forma del JSON que devuelven los
+endpoints de este módulo.
+"""
+
+from pydantic import BaseModel, Field
+
+
+class StockComprometidoRespuesta(BaseModel):
+    area: str | None = Field(None, description="Área filtrada: 'Mercado Libre', 'Amazon', 'B2C', o None para todo")
+    stock: dict[str, int] = Field(
+        ...,
+        description="Diccionario SKU → cantidad total comprometida",
+    )
+
+
+class InventarioRespuesta(BaseModel):
+    """
+    Resultado de procesar un archivo de una plataforma.
+
+    El campo `inventario` es un diccionario `{sku: stock}` que solo incluye
+    los SKUs encontrados en el archivo. Los SKUs que no aparecen se asumen
+    con stock 0 en esa plataforma.
+
+    Para Spakio, el stock ya tiene descontado el stock comprometido (B2C +
+    Mercado Libre). Los SKUs comprometidos que no estaban en el archivo
+    aparecen en `warnings`.
+    """
+    plataforma: str = Field(..., description="Plataforma procesada (ej. 'mercadolibre')")
+    inventario: dict[str, int] = Field(
+        ...,
+        description="Diccionario SKU → stock neto (comprometido ya descontado en Spakio)",
+    )
+    productos_encontrados: int = Field(
+        ...,
+        description="Cuántos SKUs distintos se resolvieron exitosamente",
+    )
+    warnings: list[str] = Field(
+        default_factory=list,
+        description="SKUs comprometidos que no aparecieron en el archivo de Spakio",
+    )

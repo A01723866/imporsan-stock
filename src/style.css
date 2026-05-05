@@ -14,64 +14,131 @@ body {
   line-height: 1.5;
 }
 
-/* ----- Navegación entre páginas ----- */
-.impor-san-nav {
+/* ===== Layout con sidebar ===== */
+.impor-san-layout {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: #fff;
-  border-bottom: 1px solid #e0e0e0;
+  min-height: 100vh;
 }
 
-.impor-san-nav-link {
-  display: inline-block;
-  padding: 0.5rem 1rem;
+/* ----- Sidebar ----- */
+.impor-san-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  width: 220px;
+  height: 100vh;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 1.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+.impor-san-sidebar-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0 0.75rem;
+  color: #fff;
+}
+
+.impor-san-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.impor-san-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: #0066cc;
+  color: #ccc;
   text-decoration: none;
   border-radius: 6px;
   transition: background-color 0.2s, color 0.2s;
 }
 
-.impor-san-nav-link:hover {
-  background: #e8f2ff;
-  color: #004d99;
+.impor-san-sidebar-link:hover {
+  background: #2a2a2a;
+  color: #fff;
 }
 
-.impor-san-nav-link-current {
+.impor-san-sidebar-link-active {
   background: #0066cc;
   color: #fff;
 }
 
-.impor-san-nav-link-current:hover {
+.impor-san-sidebar-link-active:hover {
   background: #0052a3;
   color: #fff;
 }
 
-.impor-san-nav-link:focus-visible {
+.impor-san-sidebar-link:focus-visible {
   outline: 2px solid #0066cc;
   outline-offset: 2px;
 }
 
-@media (max-width: 480px) {
-  .impor-san-nav {
-    padding: 0.5rem;
+.impor-san-sidebar-icon {
+  font-size: 1.125rem;
+  width: 1.5rem;
+  text-align: center;
+}
+
+/* En móvil el sidebar pasa arriba como barra horizontal */
+@media (max-width: 640px) {
+  .impor-san-layout {
+    flex-direction: column;
   }
 
-  .impor-san-nav-link {
+  .impor-san-sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 0.5rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .impor-san-sidebar-brand {
+    font-size: 1rem;
+    padding: 0 0.5rem;
+  }
+
+  .impor-san-sidebar-nav {
+    flex-direction: row;
+    flex: 1;
+    justify-content: flex-end;
+    gap: 0.25rem;
+  }
+
+  .impor-san-sidebar-link {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
+  }
+
+  .impor-san-sidebar-label {
+    display: none;
+  }
+
+  .impor-san-sidebar-icon {
+    font-size: 1.25rem;
   }
 }
 
 /* ----- Página principal ----- */
 .impor-san-page {
+  flex: 1;
   max-width: 900px;
   margin: 0 auto;
   padding: 1.5rem;
   min-height: 100vh;
+  width: 100%;
 }
 
 .impor-san-title {
@@ -239,6 +306,11 @@ body {
   }
 }
 
+/* ===== Página ancha (movimientos) ===== */
+.impor-san-page-wide {
+  max-width: 1400px;
+}
+
 /* ===== Página tipo Excel (productos) ===== */
 .impor-san-excel-page {
   max-width: none;
@@ -338,4 +410,293 @@ body {
     max-width: 28px;
     width: 28px;
   }
+}
+
+
+/* ===========================================================
+   Sistema de UI moderno (cards, botones, inputs, tablas)
+   Usado por la página de Movimientos. Reusable para otras.
+   =========================================================== */
+
+/* ----- Page header ----- */
+.impor-san-page-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.impor-san-page-header .impor-san-title {
+  margin: 0;
+}
+
+.impor-san-page-header .impor-san-subtitle {
+  flex-basis: 100%;
+  margin: 0;
+  color: #6b7280;
+}
+
+.impor-san-id-badge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+/* ----- Cards ----- */
+.impor-san-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.impor-san-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.impor-san-card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.impor-san-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ----- Inputs (input/select/textarea unificados) ----- */
+.impor-san-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font: inherit;
+  background: #fff;
+  color: #111827;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+
+.impor-san-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+textarea.impor-san-input {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.impor-san-input-num {
+  width: 90px;
+  text-align: right;
+}
+
+/* ----- Botones ----- */
+.impor-san-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.impor-san-btn-primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.impor-san-btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.impor-san-btn-danger {
+  background: #fff;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.impor-san-btn-danger:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+
+.impor-san-btn-ghost {
+  background: transparent;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.impor-san-btn-ghost:hover {
+  background: #f3f4f6;
+}
+
+/* ----- Filtros ----- */
+.impor-san-filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.impor-san-filtros label,
+.impor-san-form-grid label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+  gap: 0.375rem;
+}
+
+/* ----- Form ----- */
+.impor-san-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.875rem;
+}
+
+.impor-san-form-full {
+  grid-column: 1 / -1;
+}
+
+.impor-san-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.impor-san-inline-form {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.impor-san-inline-form .impor-san-input {
+  width: auto;
+  flex: 1;
+  min-width: 160px;
+}
+
+/* ----- Tabla moderna ----- */
+.impor-san-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.impor-san-table thead th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.impor-san-table tbody td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #1f2937;
+  vertical-align: middle;
+}
+
+.impor-san-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.impor-san-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.impor-san-table-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.impor-san-table-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.impor-san-table-muted {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.impor-san-row-clickable {
+  cursor: pointer;
+}
+
+.impor-san-empty {
+  padding: 1rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.impor-san-empty-row {
+  text-align: center;
+  padding: 2rem !important;
+  color: #6b7280;
+}
+
+.impor-san-link {
+  color: #2563eb;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.impor-san-link:hover {
+  text-decoration: underline;
+}
+
+.impor-san-pill {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.impor-san-error {
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
 }
