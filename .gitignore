@@ -25,7 +25,9 @@ dist-ssr
 .vercel
 .env*.local
 
-# Backend secrets (contiene service_role key de Supabase — nunca commitear)
+# Env files — nunca commitear secrets ni configuración local
+.env
+.env.example
 backend/.env
 
 # Python
