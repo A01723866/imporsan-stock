@@ -9,7 +9,7 @@
  *   - Producción:  definir VITE_API_URL en las variables de entorno del host
  */
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
 /**
  * Envía el archivo de una plataforma al backend y retorna el inventario extraído.
