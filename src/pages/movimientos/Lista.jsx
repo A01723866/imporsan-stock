@@ -12,6 +12,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import {
+  actualizarMovimiento,
   crearMovimiento,
   eliminarMovimiento,
   obtenerEstados,
@@ -57,10 +58,6 @@ export default function Lista({ onAbrirDetalle }) {
 
   useEffect(recargar, []);
 
-  const estadoPorId = useMemo(
-    () => Object.fromEntries(estados.map((e) => [e.id, e.texto])),
-    [estados],
-  );
 
   const filas = useMemo(() => {
     return movimientos.filter((m) => {
@@ -79,6 +76,17 @@ export default function Lista({ onAbrirDetalle }) {
       recargar();
     } catch (e) {
       alert(`No se pudo eliminar: ${e.message}`);
+    }
+  };
+
+  const handleCambiarEstado = async (id, nuevoEstado) => {
+    try {
+      await actualizarMovimiento(id, { estado: nuevoEstado });
+      setMovimientos((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, estado: nuevoEstado } : m)),
+      );
+    } catch (e) {
+      alert(`No se pudo cambiar el estado: ${e.message}`);
     }
   };
 
@@ -199,12 +207,17 @@ export default function Lista({ onAbrirDetalle }) {
                   </td>
                   <td>{m.nombre}</td>
                   <td>
-                    <span
-                      className="impor-san-pill"
-                      style={COLORES_ESTADO[m.estado] ?? {}}
+                    <select
+                      className="impor-san-input"
+                      value={m.estado}
+                      style={{ ...COLORES_ESTADO[m.estado], fontSize: '0.82rem', padding: '0.4rem', borderRadius: '999px', border: 'none', cursor: 'pointer', width: 'fit-content' }}
+                      onChange={(e) => { e.stopPropagation(); void handleCambiarEstado(m.id, e.target.value); }}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      {estadoPorId[m.estado] ?? '—'}
-                    </span>
+                      {estados.map((es) => (
+                        <option key={es.id} value={es.id}>{es.texto}</option>
+                      ))}
+                    </select>
                   </td>
                   <td className="impor-san-table-muted" style={{ minWidth: '220px' }}>{m.notas ?? '—'}</td>
                   <td className="impor-san-table-muted">{formatearFecha(m.fecha_creacion)}</td>
