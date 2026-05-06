@@ -10,7 +10,7 @@ Estructura
     modules/
         health/              → GET  /api/salud
         productos/           → GET  /api/productos
-        movimientos/         → CRUD /api/movimientos
+        /         → CRUD /api/movimientos
             estados/         → CRUD /api/movimientos/estados
             costo_tipo/      → CRUD /api/movimientos/costo-tipo
             mov_prod/        → CRUD /api/movimientos/productos
