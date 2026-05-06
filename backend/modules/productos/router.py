@@ -23,4 +23,8 @@ router = APIRouter()
     summary="Listar catálogo de productos",
 )
 def listar_productos() -> list[ProductoRespuesta]:
-    return service.listar_productos()
+    try:
+        return service.listar_productos()
+    except Exception as e:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=500, content={"error": str(e), "type": type(e).__name__})
