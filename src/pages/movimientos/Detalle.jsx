@@ -6,7 +6,7 @@
  * - Tabla de costos asociados (mov_costo): agregar / eliminar.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   actualizarMovimiento,
   crearMovCosto,
@@ -36,6 +36,7 @@ export default function Detalle({ id, onVolver }) {
   const [movCosto, setMovCosto] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
+  const formRef = useRef(null);
 
   const recargarLineas = () =>
     Promise.all([obtenerMovProd(id), obtenerMovCosto(id)])
@@ -99,6 +100,11 @@ export default function Detalle({ id, onVolver }) {
     }
   };
 
+  const handleVolver = async () => {
+    await formRef.current?.guardarSiHayCambios();
+    onVolver();
+  };
+
   const handleAgregarProducto = async (id_producto, cantidad) => {
     try {
       await crearMovProd({ id_movimiento: id, id_producto, cantidad: Number(cantidad) });
@@ -157,7 +163,7 @@ export default function Detalle({ id, onVolver }) {
         <button
           type="button"
           className="impor-san-btn impor-san-btn-ghost"
-          onClick={onVolver}
+          onClick={handleVolver}
         >
           ← Volver
         </button>
@@ -170,6 +176,7 @@ export default function Detalle({ id, onVolver }) {
           <h2 className="impor-san-card-title">Datos del movimiento</h2>
         </header>
         <FormEditar
+          ref={formRef}
           movimiento={movimiento}
           estados={estados}
           onGuardar={handleGuardar}
@@ -206,7 +213,7 @@ export default function Detalle({ id, onVolver }) {
   );
 }
 
-function FormEditar({ movimiento, estados, onGuardar }) {
+const FormEditar = forwardRef(function FormEditar({ movimiento, estados, onGuardar }, ref) {
   const [nombre, setNombre] = useState(movimiento.nombre);
   const [idInterno, setIdInterno] = useState(movimiento.id_interno);
   const [estado, setEstado] = useState(movimiento.estado);
@@ -214,32 +221,47 @@ function FormEditar({ movimiento, estados, onGuardar }) {
   const [plataforma, setPlataforma] = useState(movimiento.plataforma ?? '');
   const [descripcion, setDescripcion] = useState(movimiento.descripcion ?? '');
   const [notas, setNotas] = useState(movimiento.notas ?? '');
+  const [isDirty, setIsDirty] = useState(false);
+
+  const mark = (setter) => (e) => { setter(e.target.value); setIsDirty(true); };
 
   const handleCanalChange = (e) => {
     setCanal(e.target.value);
     setPlataforma('');
+    setIsDirty(true);
   };
+
+  const buildCambios = () => ({
+    nombre,
+    id_interno: idInterno,
+    estado,
+    canal,
+    plataforma: plataforma || null,
+    descripcion: descripcion || null,
+    notas: notas || null,
+  });
 
   const submit = (e) => {
     e.preventDefault();
-    onGuardar({
-      nombre,
-      id_interno: idInterno,
-      estado,
-      canal,
-      plataforma: plataforma || null,
-      descripcion: descripcion || null,
-      notas: notas || null,
-    });
+    setIsDirty(false);
+    onGuardar(buildCambios());
   };
+
+  useImperativeHandle(ref, () => ({
+    guardarSiHayCambios: async () => {
+      if (!isDirty) return;
+      setIsDirty(false);
+      await onGuardar(buildCambios());
+    },
+  }));
 
   return (
     <form onSubmit={submit} className="impor-san-form">
       <div className="impor-san-form-grid">
-        <label>Nombre<input className="impor-san-input" value={nombre} onChange={(e) => setNombre(e.target.value)} required /></label>
-        <label>ID interno<input className="impor-san-input" value={idInterno} onChange={(e) => setIdInterno(e.target.value)} required /></label>
+        <label>Nombre<input className="impor-san-input" value={nombre} onChange={mark(setNombre)} required /></label>
+        <label>ID interno<input className="impor-san-input" value={idInterno} onChange={mark(setIdInterno)} required /></label>
         <label>Estado
-          <select className="impor-san-input" value={estado} onChange={(e) => setEstado(e.target.value)}>
+          <select className="impor-san-input" value={estado} onChange={mark(setEstado)}>
             {estados.map((es) => <option key={es.id} value={es.id}>{es.texto}</option>)}
           </select>
         </label>
@@ -250,7 +272,7 @@ function FormEditar({ movimiento, estados, onGuardar }) {
             </select>
           </label>
           <label style={{ flex: 1 }}>Plataforma
-            <select className="impor-san-input" value={plataforma} onChange={(e) => setPlataforma(e.target.value)}>
+            <select className="impor-san-input" value={plataforma} onChange={mark(setPlataforma)}>
               <option value="">— opcional —</option>
               {(canal === 'B2B' ? PLATAFORMAS_B2B : PLATAFORMAS_B2C).map((p) => (
                 <option key={p} value={p}>{p}</option>
@@ -259,10 +281,10 @@ function FormEditar({ movimiento, estados, onGuardar }) {
           </label>
         </div>
         <label className="impor-san-form-full">Descripción
-          <textarea className="impor-san-input" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
+          <textarea className="impor-san-input" value={descripcion} onChange={mark(setDescripcion)} />
         </label>
         <label className="impor-san-form-full">Notas
-          <textarea className="impor-san-input" value={notas} onChange={(e) => setNotas(e.target.value)} />
+          <textarea className="impor-san-input" value={notas} onChange={mark(setNotas)} />
         </label>
       </div>
       <div className="impor-san-form-actions">
@@ -270,7 +292,7 @@ function FormEditar({ movimiento, estados, onGuardar }) {
       </div>
     </form>
   );
-}
+});
 
 function TablaProductos({ filas, productoPorId, productos, onAgregar, onEditar, onEliminar }) {
   // IDs de productos ya asignados al movimiento — para excluirlos del catálogo

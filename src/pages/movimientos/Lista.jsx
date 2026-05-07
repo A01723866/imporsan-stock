@@ -41,6 +41,19 @@ export default function Lista({ onAbrirDetalle }) {
   const [filtroEstado, setFiltroEstado] = useState('');
   const [filtroCanal, setFiltroCanal] = useState('');
 
+  // Ordenamiento
+  const [sortCampo, setSortCampo] = useState('fecha_creacion');
+  const [sortDir, setSortDir] = useState('desc');
+
+  const toggleSort = (campo) => {
+    if (sortCampo === campo) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortCampo(campo);
+      setSortDir('desc');
+    }
+  };
+
   // Form de alta
   const [mostrarForm, setMostrarForm] = useState(false);
 
@@ -60,14 +73,19 @@ export default function Lista({ onAbrirDetalle }) {
 
 
   const filas = useMemo(() => {
-    return movimientos.filter((m) => {
+    const filtradas = movimientos.filter((m) => {
       if (filtroEstado && m.estado !== filtroEstado) return false;
       if (filtroCanal && m.canal !== filtroCanal) return false;
       if (fechaDesde && m.fecha_creacion < fechaDesde) return false;
       if (fechaHasta && m.fecha_creacion > `${fechaHasta}T23:59:59`) return false;
       return true;
     });
-  }, [movimientos, filtroEstado, filtroCanal, fechaDesde, fechaHasta]);
+    return filtradas.sort((a, b) => {
+      const va = a[sortCampo] ?? '';
+      const vb = b[sortCampo] ?? '';
+      return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+  }, [movimientos, filtroEstado, filtroCanal, fechaDesde, fechaHasta, sortCampo, sortDir]);
 
   const handleEliminar = async (id) => {
     if (!confirm('¿Eliminar este movimiento? No se puede deshacer.')) return;
@@ -183,8 +201,18 @@ export default function Lista({ onAbrirDetalle }) {
               <th>Nombre</th>
               <th>Estado</th>
               <th style={{ minWidth: '220px' }}>Notas</th>
-              <th>Creado</th>
-              <th>Modificado</th>
+              <th
+                style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+                onClick={() => toggleSort('fecha_creacion')}
+              >
+                Creado {sortCampo === 'fecha_creacion' ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
+              </th>
+              <th
+                style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+                onClick={() => toggleSort('fecha_modificacion')}
+              >
+                Modificado {sortCampo === 'fecha_modificacion' ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
+              </th>
               <th></th>
             </tr>
           </thead>
