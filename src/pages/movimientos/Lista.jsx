@@ -20,6 +20,7 @@ import {
 } from '../../js/api.js';
 
 const CANALES = ['B2C', 'B2B'];
+const PLATAFORMAS = ['Mercado Libre', 'Amazon', 'Shopify', 'TikTok'];
 
 const COLORES_ESTADO = {
   'f21aa5a4-33d0-419e-aa2a-e10a6369351a': { background: '#fde68a', color: '#92400e' }, // comprometido
@@ -40,6 +41,7 @@ export default function Lista({ onAbrirDetalle }) {
   const [fechaHasta, setFechaHasta] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
   const [filtroCanal, setFiltroCanal] = useState('');
+  const [filtroPlataforma, setFiltroPlataforma] = useState('');
 
   // Ordenamiento
   const [sortCampo, setSortCampo] = useState('fecha_creacion');
@@ -76,6 +78,7 @@ export default function Lista({ onAbrirDetalle }) {
     const filtradas = movimientos.filter((m) => {
       if (filtroEstado && m.estado !== filtroEstado) return false;
       if (filtroCanal && m.canal !== filtroCanal) return false;
+      if (filtroPlataforma && m.plataforma !== filtroPlataforma) return false;
       if (fechaDesde && m.fecha_creacion < fechaDesde) return false;
       if (fechaHasta && m.fecha_creacion > `${fechaHasta}T23:59:59`) return false;
       return true;
@@ -85,7 +88,7 @@ export default function Lista({ onAbrirDetalle }) {
       const vb = b[sortCampo] ?? '';
       return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
     });
-  }, [movimientos, filtroEstado, filtroCanal, fechaDesde, fechaHasta, sortCampo, sortDir]);
+  }, [movimientos, filtroEstado, filtroCanal, filtroPlataforma, fechaDesde, fechaHasta, sortCampo, sortDir]);
 
   const handleEliminar = async (id) => {
     if (!confirm('¿Eliminar este movimiento? No se puede deshacer.')) return;
@@ -180,6 +183,17 @@ export default function Lista({ onAbrirDetalle }) {
             >
               <option value="">Todos</option>
               {CANALES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </label>
+          <label>
+            Plataforma
+            <select
+              className="impor-san-input"
+              value={filtroPlataforma}
+              onChange={(e) => setFiltroPlataforma(e.target.value)}
+            >
+              <option value="">Todas</option>
+              {PLATAFORMAS.map((p) => <option key={p} value={p}>{p}</option>)}
             </select>
           </label>
         </div>
