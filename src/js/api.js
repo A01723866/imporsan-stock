@@ -1,24 +1,29 @@
 /**
- * Cliente HTTP del backend de Imporsan Stock.
+ * Capa de acceso a datos de Imporsan Stock.
  *
- * Toda la comunicación con el backend pasa por este archivo.
- * Si la URL del backend cambia, solo hay que tocar VITE_API_URL en el .env.
- *
- * URL base:
- *   - Desarrollo:  http://localhost:8000  (o lo que diga VITE_API_URL)
- *   - Producción:  definir VITE_API_URL en las variables de entorno del host
+ * La mayoría de operaciones van directo a Supabase usando el cliente JS
+ * (anon key + RLS). La única excepción es `subirArchivo`, que manda el
+ * archivo al backend Python para su parseo.
  */
+
+import { supabase } from './supabase.js';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
-/**
- * Envía el archivo de una plataforma al backend y retorna el inventario extraído.
- *
- * @param {'mercadolibre' | 'amazon' | 'spakio'} plataforma
- * @param {File} archivo
- * @returns {Promise<{ plataforma: string, inventario: Record<string, number>, productos_encontrados: number }>}
- * @throws {Error} Si el servidor rechaza el archivo o no está disponible.
- */
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function lanzarSiError({ error, data }) {
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+
+// ---------------------------------------------------------------------------
+// stock_actual — sigue pasando por el backend Python (parseo de archivos)
+// ---------------------------------------------------------------------------
+
 export async function subirArchivo(plataforma, archivo) {
   const formData = new FormData();
   formData.append('archivo', archivo);
@@ -36,102 +41,135 @@ export async function subirArchivo(plataforma, archivo) {
   return respuesta.json();
 }
 
-/**
- * Obtiene el catálogo base de productos (solo SKU y nombre).
- *
- * @returns {Promise<Array<{ sku: string, nombre: string }>>}
- */
-export async function obtenerProductos() {
-  const respuesta = await fetch(`${API_BASE}/api/productos`);
-  if (!respuesta.ok) throw new Error('No se pudo cargar el catálogo de productos.');
-  return respuesta.json();
-}
+
+// ---------------------------------------------------------------------------
+// productos
+// ---------------------------------------------------------------------------
+
+export const obtenerProductos = () =>
+  supabase
+    .from('productos')
+    .select('id, sku, nombre, modelo, gtin, estado')
+    .then(lanzarSiError);
 
 
 // ---------------------------------------------------------------------------
-// Movimientos (módulo CRUD)
+// movimientos
 // ---------------------------------------------------------------------------
-//
-// Helpers genéricos para no repetir el patrón fetch+ok+json en cada función.
 
-async function pedirJson(url, opciones) {
-  const respuesta = await fetch(url, opciones);
-  if (!respuesta.ok) {
-    const detalle = await respuesta.json().catch(() => ({}));
-    throw new Error(detalle?.detail ?? `Error ${respuesta.status} al llamar ${url}.`);
-  }
-  // 204 No Content (delete)
-  if (respuesta.status === 204) return null;
-  return respuesta.json();
-}
-
-const opcionesJson = (metodo, body) => ({
-  method: metodo,
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(body),
-});
-
-
-// ----- movimientos -----
+const SEL_MOV = 'id, nombre, id_interno, estado, canal, plataforma, descripcion, notas, fecha_creacion, fecha_modificacion';
 
 export const obtenerMovimientos = () =>
-  pedirJson(`${API_BASE}/api/movimientos`);
+  supabase.from('movimientos').select(SEL_MOV).then(lanzarSiError);
 
 export const obtenerMovimiento = (id) =>
-  pedirJson(`${API_BASE}/api/movimientos/${id}`);
+  supabase
+    .from('movimientos')
+    .select(SEL_MOV)
+    .eq('id', id)
+    .single()
+    .then(lanzarSiError);
 
 export const crearMovimiento = (datos) =>
-  pedirJson(`${API_BASE}/api/movimientos`, opcionesJson('POST', datos));
+  supabase
+    .from('movimientos')
+    .insert(datos)
+    .select(SEL_MOV)
+    .single()
+    .then(lanzarSiError);
 
 export const actualizarMovimiento = (id, cambios) =>
-  pedirJson(`${API_BASE}/api/movimientos/${id}`, opcionesJson('PATCH', cambios));
+  supabase
+    .from('movimientos')
+    .update(cambios)
+    .eq('id', id)
+    .select(SEL_MOV)
+    .single()
+    .then(lanzarSiError);
 
 export const eliminarMovimiento = (id) =>
-  pedirJson(`${API_BASE}/api/movimientos/${id}`, { method: 'DELETE' });
+  // mov_prod y mov_costo se borran en cascada por FK
+  supabase
+    .from('movimientos')
+    .delete()
+    .eq('id', id)
+    .then(({ error }) => { if (error) throw new Error(error.message); });
 
 
-// ----- estados (catálogo) -----
+// ---------------------------------------------------------------------------
+// estados (catálogo)
+// ---------------------------------------------------------------------------
 
 export const obtenerEstados = () =>
-  pedirJson(`${API_BASE}/api/movimientos/estados`);
+  supabase.from('estados').select('id, texto').then(lanzarSiError);
 
 
-// ----- costo_tipo (catálogo) -----
+// ---------------------------------------------------------------------------
+// costo_tipo (catálogo)
+// ---------------------------------------------------------------------------
 
 export const obtenerCostoTipos = () =>
-  pedirJson(`${API_BASE}/api/movimientos/costo-tipo`);
+  supabase.from('costo_tipo').select('id, tipo').then(lanzarSiError);
 
 
-// ----- mov_prod (productos del movimiento) -----
+// ---------------------------------------------------------------------------
+// mov_prod
+// ---------------------------------------------------------------------------
+
+const SEL_MOV_PROD = 'id, id_movimiento, id_producto, cantidad';
 
 export const obtenerMovProd = (idMovimiento) => {
-  const url = idMovimiento
-    ? `${API_BASE}/api/movimientos/productos?id_movimiento=${encodeURIComponent(idMovimiento)}`
-    : `${API_BASE}/api/movimientos/productos`;
-  return pedirJson(url);
+  const q = supabase.from('mov_prod').select(SEL_MOV_PROD);
+  return (idMovimiento ? q.eq('id_movimiento', idMovimiento) : q).then(lanzarSiError);
 };
 
 export const crearMovProd = (datos) =>
-  pedirJson(`${API_BASE}/api/movimientos/productos`, opcionesJson('POST', datos));
+  supabase
+    .from('mov_prod')
+    .insert(datos)
+    .select(SEL_MOV_PROD)
+    .single()
+    .then(lanzarSiError);
 
 export const actualizarMovProd = (id, cambios) =>
-  pedirJson(`${API_BASE}/api/movimientos/productos/${id}`, opcionesJson('PATCH', cambios));
+  supabase
+    .from('mov_prod')
+    .update(cambios)
+    .eq('id', id)
+    .select(SEL_MOV_PROD)
+    .single()
+    .then(lanzarSiError);
 
 export const eliminarMovProd = (id) =>
-  pedirJson(`${API_BASE}/api/movimientos/productos/${id}`, { method: 'DELETE' });
+  supabase
+    .from('mov_prod')
+    .delete()
+    .eq('id', id)
+    .then(({ error }) => { if (error) throw new Error(error.message); });
 
 
-// ----- mov_costo (costos del movimiento) -----
+// ---------------------------------------------------------------------------
+// mov_costo
+// ---------------------------------------------------------------------------
+
+const SEL_MOV_COSTO = 'id, id_movimiento, id_costo, cantidad';
 
 export const obtenerMovCosto = (idMovimiento) => {
-  const url = idMovimiento
-    ? `${API_BASE}/api/movimientos/costos?id_movimiento=${encodeURIComponent(idMovimiento)}`
-    : `${API_BASE}/api/movimientos/costos`;
-  return pedirJson(url);
+  const q = supabase.from('mov_costo').select(SEL_MOV_COSTO);
+  return (idMovimiento ? q.eq('id_movimiento', idMovimiento) : q).then(lanzarSiError);
 };
 
 export const crearMovCosto = (datos) =>
-  pedirJson(`${API_BASE}/api/movimientos/costos`, opcionesJson('POST', datos));
+  supabase
+    .from('mov_costo')
+    .insert(datos)
+    .select(SEL_MOV_COSTO)
+    .single()
+    .then(lanzarSiError);
 
 export const eliminarMovCosto = (id) =>
-  pedirJson(`${API_BASE}/api/movimientos/costos/${id}`, { method: 'DELETE' });
+  supabase
+    .from('mov_costo')
+    .delete()
+    .eq('id', id)
+    .then(({ error }) => { if (error) throw new Error(error.message); });

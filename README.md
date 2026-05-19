@@ -1,123 +1,165 @@
 # Imporsan Stock
 
-Aplicación interna para consolidar inventario desde **MercadoLibre**, **Amazon** y **Spakio**. El usuario sube los archivos exportados de cada plataforma y la app muestra el stock combinado por producto.
+Herramienta interna para consolidar inventario de **Mercado Libre**, **Amazon** y **Spakio**, y gestionar movimientos de inventario (órdenes, envíos, etc.).
 
 ---
 
 ## Arquitectura
 
 ```
-┌───────────────────────────┐                ┌───────────────────────────┐
-│   FRONTEND (React + Vite) │   HTTP/JSON    │   BACKEND (FastAPI/Python)│
-│                           │ ─────────────► │                           │
-│  - Subir archivos         │                │  - Parsear CSV / XLSX     │
-│  - Mostrar tabla          │ ◄───────────── │  - Resolver SKUs          │
-│  - Descargar CSV          │                │  - Devolver inventario    │
-└───────────────────────────┘                └───────────────────────────┘
-        :5173                                          :8000
+┌─────────────────────────────────┐
+│   FRONTEND (React + Vite)       │
+│                                 │
+│  DropIn → sube archivos         │──── POST /api/stock-actual/upload ────► BACKEND Python
+│  Stock  → tabla consolidada     │                                          (parsea CSV/XLSX)
+│  Movimientos → CRUD órdenes     │──── Supabase JS SDK (anon key) ────────► SUPABASE (Postgres)
+└─────────────────────────────────┘
 ```
 
-**Backend stateless:** cada request procesa un archivo y devuelve el resultado. No hay base de datos (vendrá después con Supabase). El estado entre páginas vive en `sessionStorage` del navegador.
+- El **backend Python** (FastAPI) solo existe para parsear archivos de stock con pandas. Todo lo demás va directo a Supabase.
+- El **frontend** (React MPA) llama a Supabase con la `anon` key. Las políticas RLS controlan el acceso.
+- El inventario por plataforma se guarda en `sessionStorage` del navegador (se limpia al cerrar el tab).
+
+---
+
+## Páginas
+
+| Página | Ruta | Descripción |
+|---|---|---|
+| DropIn | `/src/pages/dropin/` | Arrastra o selecciona archivos CSV/XLSX de cada plataforma |
+| Stock | `/src/pages/stock/` | Tabla consolidada de stock por producto (MeLi + Amazon + Spakio) |
+| Movimientos | `/src/pages/movimientos/` | CRUD de órdenes/envíos con productos y costos |
+| Ventas | `/src/pages/ventas/` | Placeholder (sin implementar) |
 
 ---
 
 ## Estructura del repositorio
 
 ```
-.
-├── backend/                  # API en Python (FastAPI)
-│   ├── main.py               # Endpoints HTTP
-│   ├── platforms.py          # Config declarativa de cada plataforma
-│   ├── processor.py          # Motor único de procesamiento
-│   ├── sku_resolver.py       # Estrategias para identificar productos
-│   ├── mappings.py           # Tablas de mapeo de SKUs
-│   ├── catalog.py            # Lista maestra de productos
-│   ├── models.py             # Schemas Pydantic
-│   └── README.md             # Documentación del backend
-│
-├── src/                      # Frontend (React)
-│   ├── pages/                # Una carpeta por página
-│   │   ├── dropin/           # Subir archivos CSV/XLSX
-│   │   │   ├── index.html    # HTML de la página
-│   │   │   ├── main.jsx      # Entry point (monta React)
-│   │   │   └── page.jsx      # Componente visual
-│   │   ├── stock/            # Ver inventario consolidado
-│   │   │   ├── index.html
-│   │   │   ├── main.jsx
-│   │   │   └── page.jsx
-│   │   └── ventas/           # Placeholder por ahora
-│   │       ├── index.html
-│   │       ├── main.jsx
-│   │       └── page.jsx
+/
+├── src/
 │   ├── components/
-│   │   └── Sidebar.jsx       # Menú lateral compartido
+│   │   └── Sidebar.jsx              # Menú lateral compartido entre páginas
 │   ├── js/
-│   │   ├── api.js            # Cliente HTTP (única vía al backend)
-│   │   └── inventario-store.js  # Estado en sessionStorage
+│   │   ├── api.js                   # Único punto de acceso a datos (leer primero)
+│   │   ├── supabase.js              # Cliente Supabase (anon key)
+│   │   └── inventario-store.js      # sessionStorage para inventario de plataformas
+│   ├── pages/
+│   │   ├── dropin/                  # Subida de archivos
+│   │   ├── stock/                   # Vista de inventario
+│   │   ├── movimientos/
+│   │   │   ├── Lista.jsx            # Tabla con filtros + form de alta
+│   │   │   └── Detalle.jsx          # Edición + productos + costos del movimiento
+│   │   └── ventas/
 │   └── style.css
 │
-├── .env.example              # Variables de entorno (copiar a .env)
-└── package.json
+├── backend/
+│   ├── main.py                      # App FastAPI (health + stock_actual)
+│   ├── core/
+│   │   ├── config.py                # Lee variables de entorno del backend
+│   │   └── supabase.py              # Cliente con service_role (solo para el backend)
+│   └── modules/
+│       ├── health/                  # GET /api/salud
+│       └── stock_actual/
+│           ├── router.py            # POST /upload/{plataforma}, GET /comprometido
+│           ├── service.py           # Orquesta parseo + descuento de comprometido
+│           ├── platforms.py         # Configuración declarativa de cada plataforma
+│           ├── processor.py         # Lee archivos con pandas
+│           ├── sku_resolver.py      # Mapea nombres/códigos a SKU canónico
+│           └── mappings.py          # Tablas de mapeo nombre→SKU, SKU antiguo→nuevo
+│
+├── .env                             # Variables del frontend (VITE_*)
+├── backend/.env                     # Variables del backend (service_role key — secreto)
+├── vercel.json                      # Deploy: /api/* → Python, resto → dist/
+└── vite.config.js                   # Multi-page: cada página es una entrada Rollup
 ```
 
 ---
 
-## Cómo correrlo en desarrollo
+## Base de datos (Supabase)
 
-Necesitas dos terminales: una para el backend y otra para el frontend.
+### Tablas
 
-### Terminal 1 — Backend
-
-```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+```
+productos          id · sku · nombre · modelo · gtin · estado
+estados            id · texto
+costo_tipo         id · tipo
+movimientos        id · nombre · id_interno · estado(FK) · canal · plataforma · descripcion · notas · fecha_creacion · fecha_modificacion
+mov_prod           id · id_movimiento(FK CASCADE) · id_producto(FK) · cantidad
+mov_costo          id · id_movimiento(FK CASCADE) · id_costo(FK) · cantidad
 ```
 
-API: http://localhost:8000  
-Docs interactivas: http://localhost:8000/docs
+- `mov_prod` y `mov_costo` tienen `ON DELETE CASCADE` en `id_movimiento`. Borrar un movimiento borra sus líneas automáticamente.
+- El estado `"comprometido"` (UUID: `f21aa5a4-33d0-419e-aa2a-e10a6369351a`) descuenta unidades del stock de Spakio al procesar el archivo.
 
-### Terminal 2 — Frontend
+### RLS
+Todas las tablas tienen RLS activo. La `anon` key tiene CRUD completo (herramienta interna sin autenticación). La `service_role` key solo la usa el backend Python para las queries de stock comprometido.
+
+---
+
+## Desarrollo local
 
 ```bash
-cp .env.example .env       # solo la primera vez
+# Instalar dependencias
 npm install
+
+# Primera vez: crear el venv del backend
+cd backend && python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt && cd ..
+
+# Correr todo junto (backend :8000 + frontend :5173)
 npm run dev
 ```
 
-Frontend: http://localhost:5173
+> El `.env` ya tiene los valores correctos. No hay que configurar nada extra para desarrollo.
+
+---
+
+## Variables de entorno
+
+### `.env` (frontend)
+```
+VITE_API_URL=http://localhost:8000
+VITE_SUPABASE_URL=https://hozixkwvdkbfuyabimyx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...   # Anon key: pública, segura en el browser
+```
+
+### `backend/.env` (solo backend)
+```
+SUPABASE_URL=https://hozixkwvdkbfuyabimyx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...   # Bypasea RLS — nunca al frontend
+```
+
+---
+
+## Deploy (Vercel)
+
+```bash
+vercel                 # preview
+vercel --prod          # producción
+```
+
+`vercel.json` redirige `/api/*` a la función serverless Python y sirve el resto como estático desde `dist/`. Las variables de entorno deben estar configuradas en el panel de Vercel.
 
 ---
 
 ## Flujo de uso
 
-1. Abrí el frontend en el navegador.
-2. Arrastrá los archivos exportados de cada plataforma a su zona correspondiente.
-3. El frontend manda cada archivo al backend (`POST /api/upload/{plataforma}`).
-4. El backend procesa, resuelve SKUs y devuelve `{ sku: stock }`.
-5. El frontend guarda el resultado en `sessionStorage` y lo muestra combinado en la página de **Productos**.
-6. Botón **Descargar CSV** exporta la tabla consolidada.
+### Consolidar stock
+1. Ir a **DropIn** y arrastrar los archivos exportados de cada plataforma (CSV o XLSX).
+2. El backend parsea cada archivo y devuelve `{ sku: cantidad }`.
+3. Ir a **Stock** para ver la tabla consolidada. Botón **Descargar CSV** para exportar.
+
+### Gestionar movimientos
+1. Ir a **Movimientos** y crear un movimiento nuevo (nombre, ID interno, estado, canal).
+2. Abrir el detalle del movimiento para agregar productos y costos.
+3. Cambiar el estado directamente desde la lista (dropdown inline).
 
 ---
 
-## Cómo agregar un producto o un mapeo nuevo
+## Agregar una plataforma nueva
 
-| Cambio | Archivo |
-|---|---|
-| Producto nuevo en el catálogo | `backend/catalog.py` |
-| Código antiguo Spakio → SKU | `backend/mappings.py` (`SKU_ANTIGUO_A_NUEVO`) |
-| Nombre exacto Spakio → SKU | `backend/mappings.py` (`NOMBRE_SPAKIO_A_SKU`) |
-| Kit que se suma al base | `backend/mappings.py` (`KITS_A_BASE`) |
-| Plataforma nueva | `backend/platforms.py` |
-
-Más detalles en [`backend/README.md`](backend/README.md).
-
----
-
-## Próximos pasos
-
-- **Fase 3:** integrar Supabase para persistir inventario y catálogo.
-- Restringir CORS al dominio real del frontend en producción.
-- Deploy: backend en Railway/Render, frontend en Vercel.
+1. Agregar la configuración en `backend/modules/stock_actual/platforms.py` (nombre de columnas, formato de archivo, estrategia de resolución de SKU).
+2. Si hay mapeos especiales (nombres no estándar), agregarlos en `mappings.py`.
+3. Agregar la plataforma al array `PLATAFORMAS` en `src/pages/dropin/page.jsx`.
+4. Agregar la clave al estado inicial en `src/js/inventario-store.js` si se necesita mostrar como columna separada en Stock.
