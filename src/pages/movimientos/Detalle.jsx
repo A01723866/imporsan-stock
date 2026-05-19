@@ -36,6 +36,7 @@ export default function Detalle({ id, onVolver }) {
   const [movCosto, setMovCosto] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
+  const [productosAbierto, setProductosAbierto] = useState(true);
   const formRef = useRef(null);
 
   const recargarLineas = () =>
@@ -185,16 +186,31 @@ export default function Detalle({ id, onVolver }) {
 
       <section className="impor-san-card">
         <header className="impor-san-card-header">
-          <h2 className="impor-san-card-title">Productos del movimiento</h2>
+          <h2 className="impor-san-card-title">
+            Productos del movimiento
+            {movProd.length > 0 && (
+              <span className="impor-san-id-badge" style={{ marginLeft: '0.5rem' }}>{movProd.length}</span>
+            )}
+          </h2>
+          <button
+            type="button"
+            className="impor-san-btn impor-san-btn-ghost"
+            onClick={() => setProductosAbierto((v) => !v)}
+            style={{ fontSize: '0.85rem' }}
+          >
+            {productosAbierto ? 'Colapsar ↑' : 'Expandir ↓'}
+          </button>
         </header>
-        <TablaProductos
-          filas={movProd}
-          productoPorId={productoPorId}
-          productos={productos}
-          onAgregar={handleAgregarProducto}
-          onEliminar={handleEliminarProducto}
-          onEditar={handleActualizarProducto}
-        />
+        {productosAbierto && (
+          <TablaProductos
+            filas={movProd}
+            productoPorId={productoPorId}
+            productos={productos}
+            onAgregar={handleAgregarProducto}
+            onEliminar={handleEliminarProducto}
+            onEditar={handleActualizarProducto}
+          />
+        )}
       </section>
 
       <section className="impor-san-card">

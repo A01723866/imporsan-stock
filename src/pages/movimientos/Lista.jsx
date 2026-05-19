@@ -123,8 +123,8 @@ export default function Lista({ onAbrirDetalle }) {
   return (
     <>
       <div className="impor-san-page-header">
-        <h1 className="impor-san-title">Movimientos</h1>
-        <p className="impor-san-subtitle">Listado de movimientos de inventario</p>
+        <h1 className="impor-san-title">Órdenes & Envíos</h1>
+        <p className="impor-san-subtitle">Gestión de movimientos de inventario</p>
       </div>
 
       {error && <p className="impor-san-error">{error}</p>}
