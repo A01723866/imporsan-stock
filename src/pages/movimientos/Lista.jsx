@@ -13,10 +13,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   actualizarMovimiento,
+  crearMovCosto,
   crearMovimiento,
+  crearMovProd,
   eliminarMovimiento,
+  obtenerCostoTipos,
   obtenerEstados,
   obtenerMovimientos,
+  obtenerProductos,
 } from '../../js/api.js';
 
 const CANALES = ['B2C', 'B2B'];
@@ -111,14 +115,9 @@ export default function Lista({ onAbrirDetalle }) {
     }
   };
 
-  const handleCrear = async (datos) => {
-    try {
-      await crearMovimiento(datos);
-      setMostrarForm(false);
-      recargar();
-    } catch (e) {
-      alert(`No se pudo crear: ${e.message}`);
-    }
+  const handleCrear = (nuevo) => {
+    setMostrarForm(false);
+    onAbrirDetalle(nuevo.id);
   };
 
   return (
@@ -285,8 +284,10 @@ export default function Lista({ onAbrirDetalle }) {
 
 const PLATAFORMAS_B2B = ['Mercado Libre', 'Amazon'];
 const PLATAFORMAS_B2C = ['Shopify', 'TikTok', 'Mercado Libre'];
+const ESTADOS_PROD_DISPONIBLES = new Set(['Activo', 'En Liquidación']);
 
 function FormCrear({ estados, onCrear, onCancelar }) {
+  // Datos del movimiento
   const [nombre, setNombre] = useState('');
   const [idInterno, setIdInterno] = useState('');
   const [estado, setEstado] = useState('');
@@ -295,26 +296,112 @@ function FormCrear({ estados, onCrear, onCancelar }) {
   const [descripcion, setDescripcion] = useState('');
   const [notas, setNotas] = useState('');
 
-  const handleCanalChange = (e) => {
-    setCanal(e.target.value);
-    setPlataforma('');
+  // Catálogos
+  const [productos, setProductos] = useState([]);
+  const [costoTipos, setCostoTipos] = useState([]);
+  const [cargandoCatalogos, setCargandoCatalogos] = useState(true);
+
+  // Items seleccionados (solo en memoria, no en DB aún)
+  const [productosSeleccionados, setProductosSeleccionados] = useState([]);
+  const [costosSeleccionados, setCostosSeleccionados] = useState([]);
+
+  // UI del catálogo de productos
+  const [busqueda, setBusqueda] = useState('');
+  const [cantidadesCatalogo, setCantidadesCatalogo] = useState({});
+
+  // UI del formulario de costos
+  const [tipoSel, setTipoSel] = useState('');
+  const [cantidadCosto, setCantidadCosto] = useState('');
+
+  const [guardando, setGuardando] = useState(false);
+
+  useEffect(() => {
+    Promise.all([obtenerProductos(), obtenerCostoTipos()])
+      .then(([prods, tipos]) => { setProductos(prods); setCostoTipos(tipos); })
+      .finally(() => setCargandoCatalogos(false));
+  }, []);
+
+  const handleCanalChange = (e) => { setCanal(e.target.value); setPlataforma(''); };
+
+  // Productos
+  const idsSeleccionados = useMemo(
+    () => new Set(productosSeleccionados.map((p) => p.id_producto)),
+    [productosSeleccionados],
+  );
+
+  const catalogoFiltrado = useMemo(() => {
+    const texto = busqueda.trim().toLowerCase();
+    return productos.filter((p) => {
+      if (!ESTADOS_PROD_DISPONIBLES.has(p.estado)) return false;
+      if (idsSeleccionados.has(p.id)) return false;
+      if (texto) {
+        const haystack = `${p.nombre ?? ''} ${p.sku ?? ''}`.toLowerCase();
+        if (!haystack.includes(texto)) return false;
+      }
+      return true;
+    });
+  }, [productos, idsSeleccionados, busqueda]);
+
+  const agregarProducto = (producto) => {
+    const cantidad = Number(cantidadesCatalogo[producto.id]);
+    if (!cantidad || cantidad <= 0) { alert('Indicá una cantidad mayor a 0.'); return; }
+    setProductosSeleccionados((prev) => [
+      ...prev,
+      { id_producto: producto.id, nombre: producto.nombre, sku: producto.sku, cantidad },
+    ]);
+    setCantidadesCatalogo((prev) => { const s = { ...prev }; delete s[producto.id]; return s; });
   };
 
-  const submit = (e) => {
+  const quitarProducto = (id_producto) =>
+    setProductosSeleccionados((prev) => prev.filter((p) => p.id_producto !== id_producto));
+
+  // Costos
+  const agregarCosto = () => {
+    if (!tipoSel || !cantidadCosto) return;
+    const tipo = costoTipos.find((t) => t.id === tipoSel);
+    setCostosSeleccionados((prev) => [
+      ...prev,
+      { id_costo: tipoSel, tipo: tipo?.tipo ?? tipoSel, cantidad: Number(cantidadCosto) },
+    ]);
+    setTipoSel('');
+    setCantidadCosto('');
+  };
+
+  const quitarCosto = (idx) =>
+    setCostosSeleccionados((prev) => prev.filter((_, i) => i !== idx));
+
+  // Submit: crear movimiento → insertar productos → insertar costos (rollback si falla)
+  const submit = async (e) => {
     e.preventDefault();
     if (!nombre || !idInterno || !estado) {
       alert('Nombre, ID interno y Estado son obligatorios.');
       return;
     }
-    onCrear({
-      nombre,
-      id_interno: idInterno,
-      estado,
-      canal,
-      plataforma: plataforma || null,
-      descripcion: descripcion || null,
-      notas: notas || null,
-    });
+    setGuardando(true);
+    try {
+      const nuevo = await crearMovimiento({
+        nombre, id_interno: idInterno, estado, canal,
+        plataforma: plataforma || null,
+        descripcion: descripcion || null,
+        notas: notas || null,
+      });
+      try {
+        for (const p of productosSeleccionados) {
+          await crearMovProd({ id_movimiento: nuevo.id, id_producto: p.id_producto, cantidad: p.cantidad });
+        }
+        for (const c of costosSeleccionados) {
+          await crearMovCosto({ id_movimiento: nuevo.id, id_costo: c.id_costo, cantidad: c.cantidad });
+        }
+        onCrear(nuevo);
+      } catch (err) {
+        await eliminarMovimiento(nuevo.id);
+        throw err;
+      }
+    } catch (err) {
+      alert(`No se pudo crear: ${err.message}`);
+    } finally {
+      setGuardando(false);
+    }
   };
 
   return (
@@ -322,7 +409,9 @@ function FormCrear({ estados, onCrear, onCancelar }) {
       <header className="impor-san-card-header">
         <h2 className="impor-san-card-title">Nuevo movimiento</h2>
       </header>
+
       <form onSubmit={submit} className="impor-san-form">
+        {/* ── Datos del movimiento ── */}
         <div className="impor-san-form-grid">
           <label>Nombre<input className="impor-san-input" value={nombre} onChange={(e) => setNombre(e.target.value)} required /></label>
           <label>ID interno<input className="impor-san-input" value={idInterno} onChange={(e) => setIdInterno(e.target.value)} required /></label>
@@ -354,9 +443,152 @@ function FormCrear({ estados, onCrear, onCancelar }) {
             <textarea className="impor-san-input" value={notas} onChange={(e) => setNotas(e.target.value)} />
           </label>
         </div>
-        <div className="impor-san-form-actions">
-          <button type="submit" className="impor-san-btn impor-san-btn-primary">Crear</button>
-          <button type="button" className="impor-san-btn impor-san-btn-ghost" onClick={onCancelar}>Cancelar</button>
+
+        {/* ── Productos ── */}
+        <section className="impor-san-card" style={{ marginTop: '1.5rem' }}>
+          <header className="impor-san-card-header">
+            <h3 className="impor-san-card-title">Productos</h3>
+          </header>
+
+          {productosSeleccionados.length > 0 && (
+            <table className="impor-san-table" style={{ marginBottom: '1rem' }}>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>SKU</th>
+                  <th className="impor-san-table-num">Cantidad</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {productosSeleccionados.map((p) => (
+                  <tr key={p.id_producto}>
+                    <td>{p.nombre}</td>
+                    <td className="impor-san-table-mono">{p.sku}</td>
+                    <td className="impor-san-table-num">{p.cantidad}</td>
+                    <td>
+                      <button type="button" className="impor-san-btn impor-san-btn-danger" onClick={() => quitarProducto(p.id_producto)}>
+                        Quitar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <section className="impor-san-card" style={{ marginTop: '0.5rem' }}>
+            <header className="impor-san-card-header">
+              <h4 className="impor-san-card-title" style={{ fontSize: '0.9rem' }}>Catálogo</h4>
+              <input
+                type="search"
+                placeholder="Buscar por nombre o SKU…"
+                className="impor-san-input"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+              />
+            </header>
+            {cargandoCatalogos ? (
+              <p className="impor-san-empty">Cargando catálogo…</p>
+            ) : (
+              <table className="impor-san-table">
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th>SKU</th>
+                    <th className="impor-san-table-num" style={{ width: '120px' }}>Cantidad</th>
+                    <th style={{ width: '120px' }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {catalogoFiltrado.length === 0 ? (
+                    <tr><td colSpan={4} className="impor-san-empty-row">Sin productos disponibles.</td></tr>
+                  ) : (
+                    catalogoFiltrado.map((p) => (
+                      <tr key={p.id}>
+                        <td>{p.nombre}</td>
+                        <td className="impor-san-table-mono">{p.sku}</td>
+                        <td className="impor-san-table-num">
+                          <input
+                            type="number" min="1"
+                            className="impor-san-input impor-san-input-num"
+                            value={cantidadesCatalogo[p.id] ?? ''}
+                            onChange={(e) => setCantidadesCatalogo((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                          />
+                        </td>
+                        <td>
+                          <button type="button" className="impor-san-btn impor-san-btn-primary" onClick={() => agregarProducto(p)}>
+                            Agregar
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+          </section>
+        </section>
+
+        {/* ── Costos ── */}
+        <section className="impor-san-card" style={{ marginTop: '1rem' }}>
+          <header className="impor-san-card-header">
+            <h3 className="impor-san-card-title">Costos</h3>
+          </header>
+
+          {costosSeleccionados.length > 0 && (
+            <table className="impor-san-table" style={{ marginBottom: '1rem' }}>
+              <thead>
+                <tr>
+                  <th>Tipo de costo</th>
+                  <th className="impor-san-table-num">Cantidad</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {costosSeleccionados.map((c, i) => (
+                  <tr key={i}>
+                    <td>{c.tipo}</td>
+                    <td className="impor-san-table-num">{c.cantidad}</td>
+                    <td>
+                      <button type="button" className="impor-san-btn impor-san-btn-danger" onClick={() => quitarCosto(i)}>
+                        Quitar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <div className="impor-san-inline-form">
+            <select
+              className="impor-san-input"
+              value={tipoSel}
+              onChange={(e) => setTipoSel(e.target.value)}
+            >
+              <option value="">Seleccionar tipo de costo…</option>
+              {costoTipos.map((t) => <option key={t.id} value={t.id}>{t.tipo}</option>)}
+            </select>
+            <input
+              type="number" step="0.01" placeholder="Cantidad"
+              className="impor-san-input"
+              value={cantidadCosto}
+              onChange={(e) => setCantidadCosto(e.target.value)}
+            />
+            <button type="button" className="impor-san-btn impor-san-btn-primary" onClick={agregarCosto}>
+              Agregar
+            </button>
+          </div>
+        </section>
+
+        <div className="impor-san-form-actions" style={{ marginTop: '1.5rem' }}>
+          <button type="submit" className="impor-san-btn impor-san-btn-primary" disabled={guardando}>
+            {guardando ? 'Creando…' : 'Crear movimiento'}
+          </button>
+          <button type="button" className="impor-san-btn impor-san-btn-ghost" onClick={onCancelar} disabled={guardando}>
+            Cancelar
+          </button>
         </div>
       </form>
     </section>
