@@ -93,9 +93,14 @@ def stock_comprometido(area: AreaVenta | None = None) -> dict[str, int]:
     area puede ser "Mercado Libre", "Amazon", "B2C" o None (todo).
     """
     sb = get_supabase()
+    # FK explícita: hay dos relaciones mov_prod → movimientos en el esquema.
     consulta = (
         sb.table("mov_prod")
-        .select("cantidad, movimientos!inner(estado, plataforma, canal), productos!inner(sku)")
+        .select(
+            "cantidad, "
+            "movimientos!mov_prod_id_movimiento_fkey!inner(estado, plataforma, canal), "
+            "productos!inner(sku)"
+        )
         .eq("movimientos.estado", ESTADO_COMPROMETIDO)
     )
     if area is not None:
