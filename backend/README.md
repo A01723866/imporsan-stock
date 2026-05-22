@@ -24,6 +24,35 @@ uvicorn main:app --reload --port 8000
 - API: http://localhost:8000
 - Documentación interactiva: http://localhost:8000/docs
 
+## Tests (manual, sin CI)
+
+Usa el **venv del proyecto** (`backend/.venv`), no el `pip` global del sistema.
+
+Desde la raíz del repo:
+
+```bash
+# Primera vez (instala pytest en el venv, no en Python 3.9 del Mac)
+backend/.venv/bin/pip install -r backend/requirements-dev.txt
+
+npm run test:backend
+```
+
+Si aún no tienes `.venv`:
+
+```bash
+cd backend
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt -r requirements-dev.txt
+```
+
+Spakio se prueba con mock de Supabase por defecto. Para incluir Supabase real:
+
+```bash
+npm run test:backend:integration
+```
+
+Fixtures opcionales: `backend/tests/fixtures/{plataforma}/sample.csv` o `sample.xlsx` (ver README en esa carpeta).
+
 ---
 
 ## Arquitectura

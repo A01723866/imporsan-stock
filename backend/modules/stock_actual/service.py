@@ -27,6 +27,10 @@ class ArchivoInvalidoError(Exception):
     """El archivo recibido está vacío o no se pudo procesar."""
 
 
+class ErrorStockComprometidoError(Exception):
+    """Fallo al consultar movimientos comprometidos en Supabase (solo Spakio)."""
+
+
 def obtener_configuracion(plataforma: str) -> ConfiguracionPlataforma:
     configuracion = PLATAFORMAS.get(plataforma)
     if configuracion is None:
@@ -107,7 +111,12 @@ def stock_comprometido(area: AreaVenta | None = None) -> dict[str, int]:
         columna, valor = _FILTROS_AREA[area]
         consulta = consulta.eq(columna, valor)
 
-    filas = consulta.execute().data
+    try:
+        filas = consulta.execute().data
+    except Exception as error:
+        raise ErrorStockComprometidoError(
+            f"No se pudo consultar stock comprometido: {error}"
+        ) from error
 
     totales: dict[str, int] = {}
     for fila in filas:

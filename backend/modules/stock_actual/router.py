@@ -27,30 +27,49 @@ from .schemas import InventarioRespuesta, StockComprometidoRespuesta
 router = APIRouter()
 
 
+def _manejar_error_stock_comprometido(error: service.ErrorStockComprometidoError) -> None:
+    raise HTTPException(status_code=502, detail=str(error))
+
+
 @router.get(
     "/comprometido",
     response_model=StockComprometidoRespuesta,
     summary="Stock total en estado comprometido (todas las áreas)",
+    responses={502: {"description": "Error al consultar Supabase"}},
 )
 def stock_comprometido_total() -> StockComprometidoRespuesta:
-    return StockComprometidoRespuesta(area=None, stock=service.stock_comprometido())
+    try:
+        stock = service.stock_comprometido()
+    except service.ErrorStockComprometidoError as error:
+        _manejar_error_stock_comprometido(error)
+    return StockComprometidoRespuesta(area=None, stock=stock)
 
 
 @router.get(
     "/comprometido/{area}",
     response_model=StockComprometidoRespuesta,
     summary="Stock comprometido por área: Mercado Libre, Amazon o B2C",
+    responses={502: {"description": "Error al consultar Supabase"}},
 )
 def stock_comprometido_por_area(
     area: Literal["Mercado Libre", "Amazon", "B2C"],
 ) -> StockComprometidoRespuesta:
-    return StockComprometidoRespuesta(area=area, stock=service.stock_comprometido(area=area))
+    try:
+        stock = service.stock_comprometido(area=area)
+    except service.ErrorStockComprometidoError as error:
+        _manejar_error_stock_comprometido(error)
+    return StockComprometidoRespuesta(area=area, stock=stock)
 
 
 @router.post(
     "/upload/{plataforma}",
     response_model=InventarioRespuesta,
     summary="Procesar archivo de una plataforma",
+    responses={
+        400: {"description": "Plataforma desconocida"},
+        422: {"description": "Archivo inválido o no parseable"},
+        502: {"description": "Error al consultar stock comprometido (Spakio)"},
+    },
 )
 async def subir_archivo(
     plataforma: str,
@@ -64,6 +83,8 @@ async def subir_archivo(
         raise HTTPException(status_code=400, detail=str(error))
     except service.ArchivoInvalidoError as error:
         raise HTTPException(status_code=422, detail=str(error))
+    except service.ErrorStockComprometidoError as error:
+        raise HTTPException(status_code=502, detail=str(error))
 
     return InventarioRespuesta(
         plataforma=plataforma,
