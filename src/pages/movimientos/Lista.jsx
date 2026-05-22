@@ -212,6 +212,7 @@ export default function Lista({ onAbrirDetalle }) {
             <tr>
               <th>ID interno</th>
               <th>Nombre</th>
+              <th>Plataforma</th>
               <th>Estado</th>
               <th style={{ minWidth: '220px' }}>Notas</th>
               <th
@@ -231,9 +232,9 @@ export default function Lista({ onAbrirDetalle }) {
           </thead>
           <tbody>
             {cargando ? (
-              <tr><td colSpan={7} className="impor-san-empty-row">Cargando…</td></tr>
+              <tr><td colSpan={8} className="impor-san-empty-row">Cargando…</td></tr>
             ) : filas.length === 0 ? (
-              <tr><td colSpan={7} className="impor-san-empty-row">Sin movimientos.</td></tr>
+              <tr><td colSpan={8} className="impor-san-empty-row">Sin movimientos.</td></tr>
             ) : (
               filas.map((m) => (
                 <tr key={m.id} className="impor-san-row-clickable">
@@ -247,6 +248,7 @@ export default function Lista({ onAbrirDetalle }) {
                     </a>
                   </td>
                   <td>{m.nombre}</td>
+                  <td className="impor-san-table-muted">{m.plataforma ?? '—'}</td>
                   <td>
                     <select
                       className="impor-san-input"
@@ -314,6 +316,7 @@ function FormCrear({ estados, onCrear, onCancelar }) {
   const [cantidadCosto, setCantidadCosto] = useState('');
 
   const [guardando, setGuardando] = useState(false);
+  const [productosAbierto, setProductosAbierto] = useState(true);
 
   useEffect(() => {
     Promise.all([obtenerProductos(), obtenerCostoTipos()])
@@ -406,11 +409,27 @@ function FormCrear({ estados, onCrear, onCancelar }) {
 
   return (
     <section className="impor-san-card">
-      <header className="impor-san-card-header">
-        <h2 className="impor-san-card-title">Nuevo movimiento</h2>
-      </header>
-
       <form onSubmit={submit} className="impor-san-form">
+        <header className="impor-san-card-header">
+          <h2 className="impor-san-card-title">Nuevo movimiento</h2>
+          <div className="impor-san-card-actions">
+            <button
+              type="submit"
+              className="impor-san-btn impor-san-btn-primary"
+              disabled={guardando}
+            >
+              {guardando ? 'Creando…' : 'Crear movimiento'}
+            </button>
+            <button
+              type="button"
+              className="impor-san-btn impor-san-btn-ghost"
+              onClick={onCancelar}
+              disabled={guardando}
+            >
+              Cancelar
+            </button>
+          </div>
+        </header>
         {/* ── Datos del movimiento ── */}
         <div className="impor-san-form-grid">
           <label>Nombre<input className="impor-san-input" value={nombre} onChange={(e) => setNombre(e.target.value)} required /></label>
@@ -447,10 +466,25 @@ function FormCrear({ estados, onCrear, onCancelar }) {
         {/* ── Productos ── */}
         <section className="impor-san-card" style={{ marginTop: '1.5rem' }}>
           <header className="impor-san-card-header">
-            <h3 className="impor-san-card-title">Productos</h3>
+            <h3 className="impor-san-card-title">
+              Productos
+              {productosSeleccionados.length > 0 && (
+                <span className="impor-san-id-badge" style={{ marginLeft: '0.5rem' }}>
+                  {productosSeleccionados.length}
+                </span>
+              )}
+            </h3>
+            <button
+              type="button"
+              className="impor-san-btn impor-san-btn-ghost"
+              onClick={() => setProductosAbierto((v) => !v)}
+              style={{ fontSize: '0.85rem' }}
+            >
+              {productosAbierto ? 'Colapsar ↑' : 'Expandir ↓'}
+            </button>
           </header>
 
-          {productosSeleccionados.length > 0 && (
+          {productosAbierto && productosSeleccionados.length > 0 && (
             <table className="impor-san-table" style={{ marginBottom: '1rem' }}>
               <thead>
                 <tr>
@@ -477,6 +511,7 @@ function FormCrear({ estados, onCrear, onCancelar }) {
             </table>
           )}
 
+          {productosAbierto && (
           <section className="impor-san-card" style={{ marginTop: '0.5rem' }}>
             <header className="impor-san-card-header">
               <h4 className="impor-san-card-title" style={{ fontSize: '0.9rem' }}>Catálogo</h4>
@@ -528,6 +563,7 @@ function FormCrear({ estados, onCrear, onCancelar }) {
               </table>
             )}
           </section>
+          )}
         </section>
 
         {/* ── Costos ── */}
@@ -581,15 +617,6 @@ function FormCrear({ estados, onCrear, onCancelar }) {
             </button>
           </div>
         </section>
-
-        <div className="impor-san-form-actions" style={{ marginTop: '1.5rem' }}>
-          <button type="submit" className="impor-san-btn impor-san-btn-primary" disabled={guardando}>
-            {guardando ? 'Creando…' : 'Crear movimiento'}
-          </button>
-          <button type="button" className="impor-san-btn impor-san-btn-ghost" onClick={onCancelar} disabled={guardando}>
-            Cancelar
-          </button>
-        </div>
       </form>
     </section>
   );
