@@ -286,7 +286,7 @@ export default function Lista({ onAbrirDetalle }) {
 
 const PLATAFORMAS_B2B = ['Mercado Libre', 'Amazon'];
 const PLATAFORMAS_B2C = ['Shopify', 'TikTok', 'Mercado Libre'];
-const ESTADOS_PROD_DISPONIBLES = new Set(['Activo', 'En Liquidación']);
+const ESTADOS_PROD_DISPONIBLES = new Set(['Activo', 'En Liquidación', 'Labs']);
 
 function FormCrear({ estados, onCrear, onCancelar }) {
   // Datos del movimiento
