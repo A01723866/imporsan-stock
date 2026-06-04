@@ -21,7 +21,7 @@ import {
   obtenerMovProd,
   obtenerProductos,
 } from '../../js/api.js';
-const ESTADOS_DISPONIBLES = new Set(['Activo', 'En Liquidación']);
+const ESTADOS_DISPONIBLES = new Set(['Activo', 'En Liquidación', 'Labs']);
 
 const CANALES = ['B2C', 'B2B'];
 const PLATAFORMAS_B2B = ['Mercado Libre', 'Amazon'];
