@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # CLAUDE.md — Imporsan Stock
 
 Guía para trabajar en este repositorio. Léela antes de tocar código.
@@ -7,7 +11,7 @@ Guía para trabajar en este repositorio. Léela antes de tocar código.
 ## Qué es este proyecto
 
 Herramienta interna de Imporsan para:
-1. **Consolidar stock** de múltiples plataformas (Mercado Libre, Amazon, Spakio) subiendo archivos CSV/XLSX.
+1. **Consolidar stock** de múltiples plataformas (Mercado Libre, Amazon, Amazon Reserva, Spakio) subiendo archivos CSV/XLSX.
 2. **Gestionar movimientos** de inventario (órdenes, envíos) con sus productos y costos asociados.
 
 No hay autenticación de usuarios. Es una herramienta de uso interno.
@@ -101,8 +105,17 @@ Frontend → Supabase JS SDK (anon key + RLS) → PostgreSQL
 ### RLS
 Todas las tablas tienen RLS habilitado. La `anon` key tiene acceso full CRUD en todas las tablas (herramienta interna, sin auth). La `service_role` key la usa solo el backend Python.
 
+### Plataformas de stock soportadas
+
+| Clave en URL | Formato | Identificador |
+|---|---|---|
+| `mercadolibre` | XLSX | SKU directo (col 3) |
+| `amazon` | CSV | SKU directo (col 0), stock FBA (col 13) |
+| `amazon_reserva` | CSV | SKU directo (col 0), unidades reservadas por clientes (col 5) |
+| `spakio` | CSV | Por nombre de producto via `mappings.py` (col 3) |
+
 ### Estado "comprometido"
-UUID hardcodeado: `f21aa5a4-33d0-419e-aa2a-e10a6369351a`. Los movimientos en este estado descuentan del stock de Spakio al procesar el archivo.
+UUID hardcodeado: `f21aa5a4-33d0-419e-aa2a-e10a6369351a`. Los movimientos en este estado descuentan del stock de Spakio al procesar el archivo. Solo afecta a Spakio; las demás plataformas ignoran los comprometidos.
 
 ---
 
@@ -119,6 +132,15 @@ UUID hardcodeado: `f21aa5a4-33d0-419e-aa2a-e10a6369351a`. Los movimientos en est
 - El backend solo existe para parsear archivos (pandas). Todo lo demás es Supabase directo.
 - Cada módulo es dueño de su persistencia: el service.py de cada módulo llama a Supabase.
 - No agregar routers de CRUD al backend. Si hay una nueva tabla en Supabase, la lógica va directo al frontend vía `api.js`.
+
+### Agregar una nueva plataforma de stock
+
+1. Identificar los índices de columna del archivo con `POST /api/stock-actual/inspeccionar/{plataforma}` o abriendo el archivo manualmente.
+2. Agregar un entry a `PLATAFORMAS` en `backend/modules/stock_actual/platforms.py` con `formato`, `columnas`, `resolver` y opcionalmente `saltar_filas`.
+3. Si ningún resolver existente sirve (ver `sku_resolver.py`), crear uno nuevo. Para plataformas con SKU directo usar `resolver_por_sku_directo`.
+4. Agregar bytes de fixture en `backend/tests/fixtures/` y registrar la plataforma en `fixture_bytes.py`.
+
+No hay handlers, parsers ni registros adicionales que tocar.
 
 ---
 
@@ -143,6 +165,22 @@ npm run build
 ```
 
 El backend corre en `http://localhost:8000`. El frontend en `http://localhost:5173`.
+
+### Tests del backend
+
+```bash
+# Todos los tests unitarios (mockean Supabase, sin red)
+npm run test:backend
+
+# Tests de integración (requieren backend/.env con credenciales reales)
+npm run test:backend:integration
+
+# Un solo archivo o test
+cd backend && .venv/bin/python -m pytest tests/test_upload_plataformas.py
+cd backend && .venv/bin/python -m pytest tests/test_upload_plataformas.py::TestUploadEndpoint::test_upload_responde_200_sin_error
+```
+
+Los tests de Spakio requieren el fixture `mock_stock_comprometido` (en `conftest.py`) porque Spakio llama a Supabase en producción. Sin ese mock los tests unitarios fallan por falta de credenciales.
 
 ---
 
