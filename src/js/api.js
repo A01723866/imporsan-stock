@@ -42,6 +42,18 @@ export async function subirArchivo(plataforma, archivo) {
 }
 
 
+export const obtenerReporteInventarioFba = (forzar_nuevo = false) =>
+  fetch(`${API_BASE}/api/integraciones/reporte-inventario-fba?forzar_nuevo=${forzar_nuevo}`)
+    .then(respuesta => {
+      if (!respuesta.ok) {
+        throw new Error(`Error ${respuesta.status} al obtener el reporte de inventario FBA.`);
+      }
+      return respuesta.json();
+    })
+    .then(data => {
+      return data;
+    });
+
 // ---------------------------------------------------------------------------
 // productos
 // ---------------------------------------------------------------------------

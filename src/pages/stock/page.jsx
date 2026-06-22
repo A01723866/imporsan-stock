@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
-import { obtenerProductos } from '../../js/api.js';
+import { obtenerProductos, obtenerReporteInventarioFba } from '../../js/api.js';
 import { leerInventario } from '../../js/inventario-store.js';
 
 /**
  * Combina el catálogo con el inventario por plataforma para producir
  * las filas de la tabla. Los SKUs sin stock en una plataforma quedan en 0.
  */
-function construirFilas(catalogo, inventario) {
+function construirFilas(catalogo, inventario, mapaAmazon) {
   return catalogo.map((producto) => {
     const meli    = inventario.mercadolibre[producto.sku]  ?? 0;
-    const reserva = inventario.amazon_reserva[producto.sku] ?? 0;
-    const amazon  = Math.max(0, (inventario.amazon[producto.sku] ?? 0) - reserva);
+    const amazon  = mapaAmazon[producto.sku] ?? 0;
     const spakio  = inventario.spakio[producto.sku]        ?? 0;
     return {
       ...producto,
@@ -21,6 +20,16 @@ function construirFilas(catalogo, inventario) {
       total: meli + amazon + spakio,
     };
   });
+}
+
+function mapearAmazon(filas) {
+  const mapa ={};
+  for (const fila of filas) {
+    const sku = fila.sku.trim();
+    if(!sku) continue;
+    mapa[sku] = parseInt(fila['afn-total-quantity'] || '0',10);
+  }
+  return mapa;  
 }
 
 function descargarCsv(filas) {
@@ -49,12 +58,20 @@ export default function StockPage() {
   const [error, setError]     = useState('');
 
   useEffect(() => {
-    obtenerProductos()
-      .then((catalogo) => {
+    Promise.all([
+      obtenerProductos(),
+      obtenerReporteInventarioFba(),
+    ])
+      .then(([catalogo, filasAmazon]) => {
+        console.log('filasAmazon:', filasAmazon);
         const inventario = leerInventario();
-        setFilas(construirFilas(catalogo, inventario));
+        const mapaAmazon = mapearAmazon(filasAmazon);
+        setFilas(construirFilas(catalogo, inventario, mapaAmazon));
       })
-      .catch(() => setError('No se pudo conectar con el servidor. ¿Está corriendo el backend?'))
+      .catch((error) => {
+        console.error(error);
+        setError('No se pudo cargar el stock. Por favor, inténtelo de nuevo.');
+      })
       .finally(() => setCargando(false));
   }, []);
 

@@ -13,6 +13,10 @@ Estructura
         health/       → GET  /api/salud
         stock_actual/ → POST /api/stock-actual/upload/{plataforma}
                         POST /api/stock-actual/debug/{plataforma}
+                        GET  /api/stock-actual/sync/amazon
+    integrations/
+        amazon/       → GET  /api/integraciones/amazon/token
+                        GET  /api/integraciones/amazon/inventario-raw
 
 Ejecución local
 ---------------
@@ -23,6 +27,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+
+from integrations.router import router as integrations_router
 from modules.health.router import router as health_router
 from modules.stock_actual.router import router as stock_actual_router
 
@@ -51,3 +57,4 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 
 app.include_router(health_router, prefix="/api")
 app.include_router(stock_actual_router, prefix="/api/stock-actual", tags=["stock-actual"])
+app.include_router(integrations_router, prefix="/api/integraciones", tags=["integraciones"])
