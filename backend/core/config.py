@@ -37,7 +37,12 @@ class Settings(BaseSettings):
     amazon_client_id: str = ""
     amazon_client_secret: str = ""
     amazon_refresh_token: str = ""
-    amazon_marketplace_id: str = "A1AM78C64UM0Y8"
+    amazon_marketplace_id: str = ""
+
+    meli_client_id: str = ""
+    meli_client_secret: str = ""
+    meli_refresh_token: str = ""
+    meli_user_id: str = ""
 
 
 @lru_cache

@@ -47,6 +47,7 @@ def _obtener_access_token() -> str:
             "refresh_token": settings.amazon_refresh_token,
             "client_id": settings.amazon_client_id,
             "client_secret": settings.amazon_client_secret,
+            "amazon_marketplace_id": settings.amazon_marketplace_id,
         },
         timeout=15,
     )
