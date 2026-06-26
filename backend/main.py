@@ -35,7 +35,7 @@ from modules.stock_actual.router import router as stock_actual_router
 
 app = FastAPI(
     title="Imporsan Stock API",
-    description="API para procesar archivos de inventario de MercadoLibre, Amazon y Spakio.",
+    description="API para procesar archivos de inventario de MercadoLibre y Amazon.",
     version="3.0.0",
 )
 

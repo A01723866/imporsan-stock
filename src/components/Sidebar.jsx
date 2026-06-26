@@ -12,6 +12,9 @@
  * 3. Registrá el HTML en vite.config.js.
  */
 
+import { useEffect } from 'react';
+import { obtenerReporteInventarioFba } from '../js/api.js';
+
 const MENU_ITEMS = [
   { id: 'dropin',      label: 'DropIn',      icono: '📥', href: '/src/pages/dropin/' },
   { id: 'stock',       label: 'Stock',       icono: '📦', href: '/src/pages/stock/' },
@@ -23,6 +26,12 @@ const MENU_ITEMS = [
  * @param {{ activo: 'dropin' | 'stock' | 'movimientos' | 'ventas' }} props
  */
 export default function Sidebar({ activo }) {
+  useEffect(() => {
+    // Prefetch en background: deja todo en cache de sesión para que la página
+    // de Stock abra instantánea. Errores se ignoran aquí; la página los reporta.
+    obtenerReporteInventarioFba().catch(() => {});
+  }, []);
+
   return (
     <aside className="impor-san-sidebar" aria-label="Navegación principal">
       <div className="impor-san-sidebar-brand">ImporSan</div>

@@ -159,31 +159,35 @@ def _descargar_y_parsear(url: str, es_gzip: bool) -> list[dict]:
 
     texto = contenido.decode("latin-1")
     reader = csv.DictReader(io.StringIO(texto), delimiter="\t")
-    return list(reader)
+    filas = list(reader)
+    if not filas:
+        # Diagnóstico: cuando llega vacío, muestra el inicio del payload crudo.
+        print(f"[Amazon FBA] reporte vacío. bytes={len(contenido)} primeros 300 chars:\n{texto[:300]!r}")
+    return filas
+
+
+def _generar_reporte(token: str, marketplace_id: str, reusar: bool) -> list[dict]:
+    report_id = _buscar_reporte_de_hoy(token) if reusar else None
+    if not report_id:
+        report_id = _crear_reporte(token, marketplace_id)
+    document_id = _esperar_reporte(token, report_id)
+    url, es_gzip = _obtener_url_descarga(token, document_id)
+    return _descargar_y_parsear(url, es_gzip)
 
 
 def obtener_reporte_inventario_fba(forzar_nuevo: bool = False) -> list[dict]:
     """
     Genera y descarga el reporte FBA completo.
-    Retorna una lista de filas como dicts (keys = columnas del TSV).
+    Retorna lista de filas como dicts (keys = columnas del TSV).
 
-    forzar_nuevo=True ignora reportes previos y crea uno fresco.
+    Si forzar_nuevo=False y el reporte reusado viene vacío, hace un retry
+    forzando uno nuevo (Amazon a veces deja DONE reportes con 0 filas).
     """
     settings = get_settings()
     token = _obtener_access_token()
 
-    # si forzar_nuevo es True, crear un nuevo reporte
-    report_id = None if forzar_nuevo else _buscar_reporte_de_hoy(token)
-    # si no se encontro reporte, crear uno
-    if not report_id:
-        report_id = _crear_reporte(token, settings.amazon_marketplace_id)
-
-    # esperar a que el reporte esté listo
-    document_id = _esperar_reporte(token, report_id)
-
-    # obtener url de descarga
-    url, es_gzip = _obtener_url_descarga(token, document_id)
-    # descargar y parsear reporte
-    filas = _descargar_y_parsear(url, es_gzip)
-
+    filas = _generar_reporte(token, settings.amazon_marketplace_id, reusar=not forzar_nuevo)
+    if not filas and not forzar_nuevo:
+        print("[Amazon FBA] reporte reusado vacío, pidiendo uno nuevo…")
+        filas = _generar_reporte(token, settings.amazon_marketplace_id, reusar=False)
     return filas

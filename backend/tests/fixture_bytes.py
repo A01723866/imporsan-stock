@@ -9,13 +9,12 @@ import pandas as pd
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
-PLATAFORMAS_UPLOAD = ("mercadolibre", "amazon", "amazon_reserva", "spakio")
+PLATAFORMAS_UPLOAD = ("mercadolibre", "amazon", "amazon_reserva")
 
 ARCHIVO_POR_PLATAFORMA: dict[str, str] = {
     "mercadolibre": "sample.xlsx",
     "amazon": "sample.csv",
     "amazon_reserva": "sample.csv",
-    "spakio": "sample.csv",
 }
 
 
@@ -45,17 +44,10 @@ def _generar_bytes_amazon_reserva() -> bytes:
     return (linea + "\n").encode("utf-8")
 
 
-def _generar_bytes_spakio() -> bytes:
-    encabezado = _fila_csv(11, {3: "name", 9: "totalStock"})
-    fila = _fila_csv(11, {3: "BB Savage C-BB-DIS-0003", 9: "4"})
-    return f"{encabezado}\n{fila}\n".encode("utf-8")
-
-
 _GENERADORES = {
     "mercadolibre": _generar_bytes_mercadolibre,
     "amazon": _generar_bytes_amazon,
     "amazon_reserva": _generar_bytes_amazon_reserva,
-    "spakio": _generar_bytes_spakio,
 }
 
 

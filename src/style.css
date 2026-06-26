@@ -732,3 +732,197 @@ textarea.impor-san-input {
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
 }
+
+/* ===== Barra de progreso de carga (Stock) ===== */
+.impor-san-progreso {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.impor-san-progreso-texto {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+.impor-san-progreso-barra {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.impor-san-progreso-relleno {
+  height: 100%;
+  background: var(--color-teal-mid);
+  transition: width 0.25s ease;
+}
+
+/* ===========================================================
+   Modal genérico
+   =========================================================== */
+.impor-san-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 33, 55, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.impor-san-modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 960px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+}
+
+.impor-san-modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.impor-san-modal-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  color: var(--color-navy);
+}
+
+.impor-san-modal-body {
+  padding: 1.25rem 1.5rem;
+  overflow: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.impor-san-modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  background: #fafafa;
+}
+
+.impor-san-alert {
+  margin: 0;
+  padding: 0.75rem 1rem 0.75rem 2rem;
+  background: #fff8e1;
+  border: 1px solid #fcd34d;
+  border-left: 4px solid var(--color-teal-mid);
+  border-radius: 8px;
+  color: #5b3d00;
+  font-size: 0.9rem;
+}
+
+.impor-san-alert li + li {
+  margin-top: 0.25rem;
+}
+
+.impor-san-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.impor-san-modal-table th,
+.impor-san-modal-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.impor-san-modal-table th {
+  font-weight: 600;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+}
+
+.impor-san-modal-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.impor-san-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===========================================================
+   Productos no identificados (Stock)
+   =========================================================== */
+.impor-san-no-id {
+  background: #fff;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  margin: 1rem 0;
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+.impor-san-no-id-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: #fffbeb;
+  border-bottom: 1px solid #fcd34d;
+}
+
+.impor-san-no-id-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  color: var(--color-navy);
+}
+
+.impor-san-no-id-count {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  background: #fcd34d;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: #5b3d00;
+}
+
+.impor-san-no-id-scroll {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.impor-san-toggle {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: var(--color-teal-dark);
+  cursor: pointer;
+  padding: 0 0.25rem;
+}
+
+.impor-san-modal-table-sub td {
+  background: #f9fafb;
+  font-size: 0.8rem;
+}
