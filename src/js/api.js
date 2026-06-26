@@ -42,6 +42,63 @@ export async function subirArchivo(plataforma, archivo) {
 }
 
 
+// Cache de sesión + dedupe de in-flight: cada endpoint se pide UNA vez por tab.
+const _inflight = new Map();
+function cacheSesion(clave, fn) {
+  const guardado = sessionStorage.getItem(clave);
+  if (guardado) return Promise.resolve(JSON.parse(guardado));
+  if (_inflight.has(clave)) return _inflight.get(clave);
+  const p = fn().then((data) => {
+    try { sessionStorage.setItem(clave, JSON.stringify(data)); } catch (_) {}
+    _inflight.delete(clave);
+    return data;
+  }).catch((e) => { _inflight.delete(clave); throw e; });
+  _inflight.set(clave, p);
+  return p;
+}
+
+export const obtenerReporteInventarioFba = (forzar_nuevo = false) =>
+  cacheSesion(`cache:fba:${forzar_nuevo}`, () =>
+    fetch(`${API_BASE}/api/integraciones/reporte-inventario-fba?forzar_nuevo=${forzar_nuevo}`)
+      .then(r => {
+        if (!r.ok) throw new Error(`Error ${r.status} al obtener el reporte de inventario FBA.`);
+        return r.json();
+      }));
+
+// Productos comprometidos (estado Comprometido) en Mercado Libre o Amazon.
+// Se contrastan contra los "listos" del archivo de marklog en la verificación.
+const _ESTADO_COMPROMETIDO = 'f21aa5a4-33d0-419e-aa2a-e10a6369351a';
+const _ESTADO_RECLAMO      = 'd2173d71-9311-40c4-9d8c-36a97233c594';
+
+export const obtenerComprometidos = () =>
+  supabase
+    .from('mov_prod')
+    .select(`
+      id,
+      cantidad,
+      productos!inner(sku, nombre),
+      mov:movimientos!mov_prod_id_movimiento_fkey!inner(id, id_interno, nombre, plataforma, estado)
+    `)
+    .in('mov.plataforma', ['Mercado Libre', 'Amazon'])
+    .eq('mov.estado', _ESTADO_COMPROMETIDO)
+    .then(lanzarSiError);
+
+// Envíos en reclamo de Mercado Libre — para ajustar el stock de meli
+// con la diferencia entre cantidad enviada e ingresada.
+export const obtenerReclamosMeli = () =>
+  supabase
+    .from('mov_prod')
+    .select(`
+      id,
+      cantidad,
+      productos!inner(sku, nombre),
+      mov:movimientos!mov_prod_id_movimiento_fkey!inner(id, id_interno, nombre, plataforma, estado)
+    `)
+    .eq('mov.plataforma', 'Mercado Libre')
+    .eq('mov.estado', _ESTADO_RECLAMO)
+    .then(lanzarSiError);
+
+
 // ---------------------------------------------------------------------------
 // productos
 // ---------------------------------------------------------------------------

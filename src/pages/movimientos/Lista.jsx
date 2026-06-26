@@ -32,6 +32,7 @@ const COLORES_ESTADO = {
   '89af0089-6d3b-4a5b-aeb4-39edcdef4b3e': { background: '#fef08a', color: '#713f12' }, // en proceso
   'b23ee1d2-ca56-4533-af1f-eafd54abdc95': { background: '#bfdbfe', color: '#1e3a5f' }, // azul
   'd2173d71-9311-40c4-9d8c-36a97233c594': { background: '#fed7aa', color: '#7c2d12' }, // reclamo
+  '2adfccf3-c04a-4a9b-bfc1-721847516651': { background: '#fb923c', color: '#7c2d12' }, // ingresando
 };
 
 export default function Lista({ onAbrirDetalle }) {

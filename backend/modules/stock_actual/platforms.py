@@ -27,7 +27,6 @@ from typing import Callable, Literal
 from .sku_resolver import (
     Resultado,
     resolver_por_sku_directo,
-    resolver_spakio,
 )
 
 
@@ -54,7 +53,7 @@ class ConfiguracionPlataforma:
         Cuántas filas iniciales ignorar (útil cuando el archivo tiene
         una fila de encabezado que no queremos procesar).
     """
-    formato: Literal["xlsx", "csv"]
+    formato: Literal["xlsx", "csv", "tsv"]
     columnas: dict[int, str]
     resolver: Callable[[dict], Resultado]
     saltar_filas: int = 0
@@ -74,7 +73,7 @@ PLATAFORMAS: dict[str, ConfiguracionPlataforma] = {
         formato="xlsx",
         columnas={
             3:  "sku",    # columna "SKU"
-            21: "stock",  # columna "Unidades que ocupan espacio en Full"
+            21: "stock",  # columna de stock total
         },
         resolver=resolver_por_sku_directo,
     ),
@@ -101,15 +100,20 @@ PLATAFORMAS: dict[str, ConfiguracionPlataforma] = {
         resolver=resolver_por_sku_directo,
     ),
 
-    # Spakio exporta un CSV con 11 columnas y un encabezado que saltamos.
-    # No hay SKU estandarizado, así que identificamos productos por su nombre.
-    "spakio": ConfiguracionPlataforma(
-        formato="csv",
-        columnas={
-            3: "nombre",  # columna "name"
-            9: "stock",   # columna "totalStock"
-        },
-        resolver=resolver_spakio,
+    # Almacenes propios (MTY y Tulti) exportan un archivo con extensión .xls
+    # que en realidad es TSV. Misma estructura para ambos.
+    # Col 1: Código (SKU con apóstrofo inicial), Col 5: Cantidad.
+    "almacen_mty": ConfiguracionPlataforma(
+        formato="tsv",
+        columnas={1: "sku", 5: "stock"},
+        resolver=resolver_por_sku_directo,
         saltar_filas=1,
     ),
+    "almacen_tulti": ConfiguracionPlataforma(
+        formato="tsv",
+        columnas={1: "sku", 5: "stock"},
+        resolver=resolver_por_sku_directo,
+        saltar_filas=1,
+    ),
+
 }

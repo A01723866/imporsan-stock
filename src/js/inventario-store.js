@@ -2,37 +2,21 @@
  * Estado del inventario entre páginas.
  *
  * Guarda en sessionStorage el inventario que devuelve el backend por cada
- * plataforma. El formato es un objeto plano que se puede serializar a JSON:
- *
- *   {
- *     mercadolibre: { "C-BB-DIS-0001": 42, "H-WT-LAD-0022": 17 },
- *     amazon:       { "C-BB-DIS-0001": 5 },
- *     spakio:       { "H-WT-LAD-0022": 30 },
- *   }
- *
- * Solo los SKUs encontrados en el archivo aparecen en el dict; los que no
- * aparecen se asumen en 0. La página de productos combina este estado con
- * el catálogo para armar la tabla completa.
+ * plataforma. Solo los SKUs encontrados aparecen; los que no, se asumen en 0.
  *
  * sessionStorage (no localStorage) asegura que los datos se limpian al
- * cerrar el tab, evitando que inventario viejo aparezca en sesiones nuevas.
+ * cerrar el tab.
  */
 
 const CLAVE_STORAGE = 'imporsan-inventario-v2';
 
-/** @typedef {{ mercadolibre: Record<string,number>, amazon: Record<string,number>, amazon_reserva: Record<string,number>, spakio: Record<string,number> }} InventarioCombinado */
+/** @typedef {{ mercadolibre: Record<string,number>, amazon: Record<string,number>, amazon_reserva: Record<string,number>, almacen_mty: Record<string,number>, almacen_tulti: Record<string,number> }} InventarioCombinado */
 
-/** Estado vacío por defecto. */
 function estadoVacio() {
-  return { mercadolibre: {}, amazon: {}, amazon_reserva: {}, spakio: {} };
+  return { mercadolibre: {}, amazon: {}, amazon_reserva: {}, almacen_mty: {}, almacen_tulti: {} };
 }
 
-/**
- * Lee el inventario completo desde sessionStorage.
- * Si no hay datos guardados, retorna un estado vacío.
- *
- * @returns {InventarioCombinado}
- */
+/** @returns {InventarioCombinado} */
 export function leerInventario() {
   try {
     const raw = sessionStorage.getItem(CLAVE_STORAGE);
@@ -41,15 +25,7 @@ export function leerInventario() {
   return estadoVacio();
 }
 
-/**
- * Reemplaza el inventario de UNA plataforma y persiste el estado.
- *
- * Cada vez que el usuario sube un archivo nuevo, el inventario de esa
- * plataforma se reemplaza completo (no se acumula sobre el anterior).
- *
- * @param {'mercadolibre' | 'amazon' | 'spakio'} plataforma
- * @param {Record<string, number>} inventario  Resultado de la API: { sku: stock }
- */
+/** @param {string} plataforma @param {Record<string, number>} inventario */
 export function guardarInventario(plataforma, inventario) {
   const estado = leerInventario();
   estado[plataforma] = inventario;
@@ -58,10 +34,6 @@ export function guardarInventario(plataforma, inventario) {
   } catch (_) { /* sessionStorage lleno, continuar sin guardar */ }
 }
 
-/**
- * Borra todo el inventario guardado.
- * Útil para empezar una sesión de carga limpia.
- */
 export function limpiarInventario() {
   sessionStorage.removeItem(CLAVE_STORAGE);
 }

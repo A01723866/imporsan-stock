@@ -11,12 +11,8 @@ from io import BytesIO
 
 import pandas as pd
 
-from core.supabase import get_supabase
-
 from .platforms import PLATAFORMAS, ConfiguracionPlataforma
 from .processor import procesar_archivo
-
-ESTADO_COMPROMETIDO = "f21aa5a4-33d0-419e-aa2a-e10a6369351a"
 
 
 class PlataformaDesconocidaError(Exception):
@@ -25,10 +21,6 @@ class PlataformaDesconocidaError(Exception):
 
 class ArchivoInvalidoError(Exception):
     """El archivo recibido está vacío o no se pudo procesar."""
-
-
-class ErrorStockComprometidoError(Exception):
-    """Fallo al consultar movimientos comprometidos en Supabase (solo Spakio)."""
 
 
 def obtener_configuracion(plataforma: str) -> ConfiguracionPlataforma:
@@ -41,88 +33,17 @@ def obtener_configuracion(plataforma: str) -> ConfiguracionPlataforma:
     return configuracion
 
 
-def procesar_inventario(
-    plataforma: str, contenido: bytes
-) -> tuple[dict[str, int], list[str]]:
-    """
-    Procesa un archivo y retorna (inventario, warnings).
-
-    Para Spakio: descuenta el stock comprometido de B2C y Mercado Libre.
-    Los SKUs comprometidos ausentes en el archivo van en warnings.
-    Para otras plataformas: warnings siempre vacío.
-    """
+def procesar_inventario(plataforma: str, contenido: bytes) -> dict[str, int]:
+    """Procesa un archivo y retorna {sku: stock}."""
     configuracion = obtener_configuracion(plataforma)
 
     if not contenido:
         raise ArchivoInvalidoError("El archivo está vacío.")
 
     try:
-        inventario = procesar_archivo(configuracion, contenido)
+        return procesar_archivo(configuracion, contenido)
     except Exception as error:
         raise ArchivoInvalidoError(f"No se pudo procesar el archivo: {error}") from error
-
-    if plataforma != "spakio":
-        return inventario, []
-
-    comprometido = stock_comprometido()
-
-    # Descontar del inventario y detectar ausentes
-    warnings: list[str] = []
-    for sku, cant in comprometido.items():
-        if sku not in inventario:
-            warnings.append(
-                f"SKU '{sku}' tiene {cant} unidad(es) comprometida(s) pero no aparece en Spakio."
-            )
-        else:
-            inventario[sku] = max(0, inventario[sku] - cant)
-
-    return inventario, warnings
-
-
-AreaVenta = str  # "Mercado Libre" | "Amazon" | "B2C"
-
-# B2C filtra por canal; Mercado Libre y Amazon filtran por plataforma.
-_FILTROS_AREA: dict[str, tuple[str, str]] = {
-    "Mercado Libre": ("movimientos.plataforma", "Mercado Libre"),
-    "Amazon":        ("movimientos.plataforma", "Amazon"),
-    "B2C":           ("movimientos.canal",      "B2C"),
-}
-
-
-def stock_comprometido(area: AreaVenta | None = None) -> dict[str, int]:
-    """
-    Retorna {sku: cantidad_total} con un único join:
-    mov_prod → movimientos (filtro estado + área) → productos (sku).
-
-    area puede ser "Mercado Libre", "Amazon", "B2C" o None (todo).
-    """
-    sb = get_supabase()
-    # FK explícita: hay dos relaciones mov_prod → movimientos en el esquema.
-    consulta = (
-        sb.table("mov_prod")
-        .select(
-            "cantidad, "
-            "movimientos!mov_prod_id_movimiento_fkey!inner(estado, plataforma, canal), "
-            "productos!inner(sku)"
-        )
-        .eq("movimientos.estado", ESTADO_COMPROMETIDO)
-    )
-    if area is not None:
-        columna, valor = _FILTROS_AREA[area]
-        consulta = consulta.eq(columna, valor)
-
-    try:
-        filas = consulta.execute().data
-    except Exception as error:
-        raise ErrorStockComprometidoError(
-            f"No se pudo consultar stock comprometido: {error}"
-        ) from error
-
-    totales: dict[str, int] = {}
-    for fila in filas:
-        sku = fila["productos"]["sku"]
-        totales[sku] = totales.get(sku, 0) + fila["cantidad"]
-    return totales
 
 
 def inspeccionar_archivo(plataforma: str, contenido: bytes) -> dict:

@@ -87,13 +87,15 @@ def _leer_archivo(
             dtype=str,
         )
 
-    # csv — Amazon y otros pueden exportar en latin-1 en vez de UTF-8
+    # csv / tsv — Amazon y otros pueden exportar en latin-1 en vez de UTF-8.
+    # Los almacenes propios exportan .xls que en realidad es TSV.
     csv_kwargs = dict(
         header=None,
         skiprows=configuracion.saltar_filas,
         dtype=str,
         keep_default_na=False,
         on_bad_lines="skip",
+        sep="\t" if configuracion.formato == "tsv" else ",",
     )
     try:
         return pd.read_csv(buffer, encoding="utf-8", **csv_kwargs)
